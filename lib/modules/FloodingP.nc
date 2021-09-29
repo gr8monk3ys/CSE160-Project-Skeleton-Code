@@ -3,16 +3,18 @@
 #include "../../includes/packet_id.h"
 
 module FloodingP {
-   provides interface Flooding;
-   uses interface List<packID> as PreviousPackets;
-   uses interface SimpleSend as Sender;
+   provides interface Flooding; //using same name
+   uses interface List<packID> as PreviousPackets; //Now refered to as Previous Packets 
+   uses interface SimpleSend as Sender; //Now referred to as Sender 
 }
+
+//Logic of the code:
 
 implementation {
 
    //Global variables
-   packID packet;
-   uint16_t i = 0;
+   packID packet; //serves as the packet:
+   uint16_t i = 0; //some arbitrary int i (unsigned int)
 
    // This checks to see if the source and the destination have been established yet for debugging purposes
    void floodTrack(pack* msg) {

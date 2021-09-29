@@ -1,5 +1,7 @@
 #include "../../includes/packet.h"
 
-interface Flooding {
+//Flooding Interface
+
+interface Flooding { 
    command void ping(pack* msg);
 }
