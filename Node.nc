@@ -60,6 +60,7 @@ implementation{
          pack* myMsg = (pack*) payload;
          
          // Flooding for recieve
+      
       if(myMsg -> TTL > 0){
          myMsg -> TTL = myMsg -> TTL - 1;
          call Flooding.ping(myMsg);
@@ -84,7 +85,7 @@ implementation{
    // Called to give a ping command to any called nodes
    event void CommandHandler.ping(uint16_t destination, uint8_t *payload){
       dbg(GENERAL_CHANNEL, "PING EVENT \n");
-      makePack(&sendPackage, TOS_NODE_ID, destination, 20, 0, 0, payload, PACKET_MAX_PAYLOAD_SIZE);
+      makePack(&sendPackage, TOS_NODE_ID, destination, 2, 0, 0, payload, PACKET_MAX_PAYLOAD_SIZE);
       call Sender.send(sendPackage, destination);
    }
 
