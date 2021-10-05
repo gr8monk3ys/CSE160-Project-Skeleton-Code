@@ -54,6 +54,8 @@ implementation{
 
    event void AMControl.stopDone(error_t err){}
 
+   //a function when we recieve packets:
+
    event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len){
       dbg(GENERAL_CHANNEL, "Packet Received\n");
       if(len == sizeof(pack)){
