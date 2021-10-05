@@ -137,11 +137,12 @@ def main():
     s.bootAll();
     s.addChannel(s.COMMAND_CHANNEL);
     s.addChannel(s.GENERAL_CHANNEL);
-    s.addChannel(s.FLOODING_CHANNEL);
+    #s.addChannel(s.FLOODING_CHANNEL);
     s.addChannel(s.NEIGHBOR_CHANNEL);
 
     s.runTime(20);
     s.ping(1, 2, "Hi");
+    s.neighborDMP(1);
     s.runTime(10);
     s.ping(1, 3, "Hi again");
     s.runTime(20);
@@ -149,7 +150,7 @@ def main():
     # i = 0
     # while i < 10:
     #     s.runTime(5);
-    #     s.neighborDMP(i);
+    
     #     i += 1
 
     # s.moteOff(3);
