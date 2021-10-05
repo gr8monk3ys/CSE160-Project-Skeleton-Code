@@ -18,8 +18,10 @@ implementation {
 
    
    // Determines whether or not a packet is a duplicate
+   //src = node at hand.... seq = progression ??
    bool isDuplicate(uint16_t src, uint16_t seq) {
       i = 0;
+      //we are iterating through the size of the packet list.... essentially moving through our packets 
       while(i < call PreviousPackets.size()){
          
          //a variable able to represent a packet will equal a packet within the list == the previous packet
@@ -27,15 +29,15 @@ implementation {
 
          dbg(FLOODING_CHANNEL, "Previous packets size: %d\n", previous);
 
-
-         if(previous.src == src && previous.seq == seq){
-            return TRUE;
-         }
-         //dbg(FLOODING_CHANNEL, "FLAG");
+            //if the previous source (packet) = to the previous location.... we know that we have hit the same place with the same packet:
+            if(previous.src == src && previous.seq == seq){
+               return TRUE;
+            }
+         dbg(FLOODING_CHANNEL, "FLAG");
          i++; //so the program actually dies
       }
       return FALSE;
-   }
+   } //end of is duplicate 
 
    // Determines whether or not the packet that is being sent is a duplicate, if so, then it calls false
    bool dropDuplicate(pack* msg) {
@@ -45,25 +47,26 @@ implementation {
 
          return FALSE;
          
-      }else{
-       
-      }
-   }
+       } 
+     //else{
+      // }
+   }// end of drop duplicate 
 
    // This checks to see if the source and the destination have been established yet for debugging purposes
    void floodTrack(pack* msg) {
 
+         //
       if(msg -> src != TOS_NODE_ID && msg -> dest != AM_BROADCAST_ADDR) {
 
-         //displaying a message along the Flooding Channel 
-         dbg(FLOODING_CHANNEL, "Source: %d. Destination: %d\n", msg -> src, msg -> dest);
+         //displaying a message along the Flooding Channel that will display the source node and destination node:
+         dbg(FLOODING_CHANNEL, "Source (Recieved): %d. Destination(Sent): %d\n", msg -> src, msg -> dest);
 
          //!= TOS_NODE_ID == source node
          //AM_BROADCAST_ADDR == destination (from where a message is being broadcasted)
       }
       //call to send 
       call Sender.send(*msg, AM_BROADCAST_ADDR); //message to be sent, destination where message will be sent
-   }
+   }//end of Flood Track
 
 
    // This does the actual flooding by checking all endpoints and then proceeding once checked
@@ -79,5 +82,5 @@ implementation {
       dbg(FLOODING_CHANNEL, "Packet being sent (ID): %d\n" , packet);
 
       floodTrack(msg); //actually sending the message 
-   }
+   } // end of Flooding.ping
 }
