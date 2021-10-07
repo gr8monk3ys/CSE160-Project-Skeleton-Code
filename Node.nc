@@ -32,6 +32,11 @@ module Node{
 
    //used for flooding:
    uses interface Flooding;
+
+
+   //since it was recommended to use a timer:
+   uses interface Timer<TMilli>;
+    uses interface NeighborDiscovery;
 }
 
 implementation{
@@ -101,6 +106,7 @@ implementation{
       // call NeighborDiscovery.printNeighbors();
    }
 
+   //to print the table 
    event void CommandHandler.printRouteTable(){}
 
    event void CommandHandler.printLinkState(){}
