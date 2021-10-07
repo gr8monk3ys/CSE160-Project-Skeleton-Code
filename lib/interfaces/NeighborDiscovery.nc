@@ -3,16 +3,16 @@
 //Neighbor Discovery Interface:
 
 interface NeighborDiscovery{
-        //we want to recieve the message
-    command void ping(pack msg*);
-
+    //we want to recieve the message
+    command void recieve(pack* msg);
+    //we want to be able to print the neighbors
     command void printNeighbors();
-
-    command uint32_t* getNeighbors();
-
+    //we want to gather our neighbors 
+    command uint16_t* gatherNeighbors();
+    //we would like the number of our neighbors 
     command uint16_t numNeighbors();
+    //we want to find the nodes based off the sequence identifier 
+    command void find(uint16_t seq);
 
-
-//    command void  (uint16_t seq);
    
 }

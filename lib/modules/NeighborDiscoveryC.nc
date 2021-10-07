@@ -12,8 +12,8 @@ implementation {
    NeighborDiscovery = NeighborDiscoveryP;
 
 //List of packets... no we want to use a hash map: since we are dealing with nodes and their corresponding neighbors
-   components new HashmapC(uint16_t, 128);
-   NeighborDiscoveryP.NeighborNodes -> HashMapC; //using name NeighborNodes
+   components new HashmapC(uint16_t, 128) as NeighborNodes;
+   NeighborDiscoveryP.NeighborNodes -> NeighborNodes; //using name NeighborNodes
 
 //Sending Packets... using the name sender
    components new SimpleSendC(AM_PACK);
