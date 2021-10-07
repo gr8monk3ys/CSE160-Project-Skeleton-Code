@@ -6,15 +6,15 @@ module NeighborDiscoveryP {
    provides interface NeighborDiscovery; // using same name
    uses interface Hashmap<uint16_t> as NeighborNodes; // Now refered to as Previous Packets 
    uses interface SimpleSend as Sender; // Now referred to as Sender 
-   uses interface printNeighbors as printNeighbors;
-   uses interface recieve as recieve;
+   //uses interface printNeighbors as printNeighbors;
+   //uses interface recieve;
 }
 
 
 implementation{
 
     //we will need to create our own packet to work with.... like using make pack.. calling the function
-   void makePack(pack *neighborPack, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
+   void makePack(pack* neighborPack, uint16_t seq);
 
  
     //the pdf said to get a reply rather than an initial ping... so we can change the state of the packet to a reply 
@@ -68,23 +68,25 @@ implementation{
     }
 
      //getting our neighbors in a table:
-    command uint16_t* NeighborDiscovery.gatherNeighbors(pack* msg) {
+    command uint16_t* NeighborDiscovery.gatherNeighbors() {
                 
-        return NeighborNodes; //components of the list;
+                //must return with function call
+        return call NeighborNodes.getKeys(); //components of the map: .getKeys() is given as a helper function in Hashmap.nc
     }
 
 
     //getting the number of neighbors
-    command uint16_t NeighborDiscovery.numNeighbors(pack* msg){
+    command uint16_t NeighborDiscovery.numNeighbors(){
             //get the size of the Neighbor Nodes 
-            return NeighborNodes.size();
+            return call NeighborNodes.size();
     }
 
    
     //to print the neighbors:
     command void NeighborDiscovery.printNeighbors() {
         uint16_t i = 0; //arbitrary int 
-        uint32_t*  = call NeighborDiscovery.gatherNeighbors(); //we want to gather the Neighbors in the table
+        //a unsigned int to take over as the neighbor node gathered
+        uint32_t* neighborNodes  = call NeighborDiscovery.gatherNeighbors(); //we want to gather the Neighbors in the table
 
         dbg(NEIGHBOR_CHANNEL, "Neighbors of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
         
@@ -92,7 +94,7 @@ implementation{
 
         //using our num neighbors function to get the number of neighbors 
 
-            dbg(NEIGHBOR_CHANNEL, "Neighbor Node: %d\n", NeighborNodes[i]); //actually printing the neighbors
+            dbg(NEIGHBOR_CHANNEL, "Neighbor Node: %d\n", neighborNodes[i]); //actually printing the neighbors
             
             i++; //to end the loop at some point
         }
