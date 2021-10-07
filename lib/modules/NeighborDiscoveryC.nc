@@ -11,11 +11,11 @@ implementation {
    components NeighborDiscoveryP;
    NeighborDiscovery = NeighborDiscoveryP;
 
-//List of packets... 
-   components new ListC(packID, 64);
-   FloodingP.PreviousPackets -> ListC;  
+//List of packets... no we want to use a hash map: since we are dealing with nodes and their corresponding neighbors
+   components new HashmapC(uint16_t, 128);
+   NeighborDiscoveryP.NeighborNodes -> HashMapC; //using name NeighborNodes
 
-//Sending Packets...
+//Sending Packets... using the name sender
    components new SimpleSendC(AM_PACK);
-   FloodingP.Sender -> SimpleSendC;
+   NeighborDiscoveryP.Sender -> SimpleSendC;
 }
