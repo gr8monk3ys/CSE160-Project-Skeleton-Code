@@ -35,8 +35,8 @@ module Node{
 
 
    //since it was recommended to use a timer:
-   uses interface Timer<TMilli>;
-    uses interface NeighborDiscovery;
+  // uses interface Timer<TMilli>;
+   // uses interface NeighborDiscovery;
 }
 
 implementation{
@@ -103,7 +103,8 @@ implementation{
 
    // Issues a call to all neighboring IDs of a node
    event void CommandHandler.printNeighbors(){
-      // call NeighborDiscovery.printNeighbors();
+      
+      call NeighborDiscovery.printNeighbors();
    }
 
    //to print the table 
