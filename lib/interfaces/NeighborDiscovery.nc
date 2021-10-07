@@ -14,5 +14,7 @@ interface NeighborDiscovery{
     //we want to find the nodes based off the sequence identifier 
     command void find(uint16_t seq);
 
+    command void makePack(pack* neighborPack, uint16_t seq);
+
    
 }

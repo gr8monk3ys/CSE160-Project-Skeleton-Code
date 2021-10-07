@@ -10,11 +10,10 @@ module NeighborDiscoveryP {
    //uses interface recieve;
 }
 
-
 implementation{
 
     //we will need to create our own packet to work with.... like using make pack.. calling the function
-   void makePack(pack* neighborPack, uint16_t seq);
+    void makePack(pack* neighborPack, uint16_t seq);
 
  
     //the pdf said to get a reply rather than an initial ping... so we can change the state of the packet to a reply 
@@ -48,7 +47,6 @@ implementation{
     
     }
 
-    
     //we also want to add a timer at some point.. according to the PDF:
     //Timer
 
@@ -58,7 +56,6 @@ implementation{
 
         call Sender.send(neighborPack, AM_BROADCAST_ADDR); //sending out packet w said attributes 
     }
-
 
     //we want to recieve the message:
     command void NeighborDiscovery.recieve(pack* msg){
@@ -81,7 +78,6 @@ implementation{
             return call NeighborNodes.size();
     }
 
-   
     //to print the neighbors:
     command void NeighborDiscovery.printNeighbors() {
         uint16_t i = 0; //arbitrary int 
@@ -100,9 +96,8 @@ implementation{
         }
     }
 
-    
     //expanding on the make pack algo by explicitly defining it:
-    void makePack(pack* neighborPack, uint16_t seq){
+   command void NeighborDiscovery.makePack(pack* neighborPack, uint16_t seq){
         neighborPack->src = TOS_NODE_ID;
         neighborPack->dest = AM_BROADCAST_ADDR;
         neighborPack->TTL = 1;
