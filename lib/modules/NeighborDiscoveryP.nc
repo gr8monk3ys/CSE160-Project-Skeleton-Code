@@ -11,7 +11,19 @@ module NeighborDiscoveryP {
 
 implementation{
  
+    //the pdf said to get a reply rather than an initial ping... so we can change the state of the packet to a reply 
+    void Reply(pack* msg) {
+        msg->src = TOS_NODE_ID;
+        msg->protocol = PROTOCOL_PINGREPLY; //from the protocol.h file
+        //that reply is now sent via the Nodes:
+        call Sender.send(*msg, AM_BROADCAST_ADDR);
+    }
+
+
     
+    //we also want to add a timer at some point:
+
+
     //we want to recieve the message:
     command void NeighborDiscovery.recieve(pack* msg){
 
@@ -27,7 +39,7 @@ implementation{
      
     }
 
-
+    //to print the neighbors:
     command void NeighborDiscovery.printNeighbors() {
         uint16_t i; //arbitrary int 
         uint32_t*  = call NeighborDiscovery.gatherNeighbors(); //we want to gather the Neighbors in the table
