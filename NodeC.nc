@@ -31,8 +31,8 @@ implementation {
     components CommandHandlerC;
     Node.CommandHandler -> CommandHandlerC;
 
-    // components NeighborDiscoveryC;
-    // Node.NeighborDiscovery -> NeighborDiscoveryC;
+    components NeighborDiscoveryC;
+    Node.NeighborDiscovery -> NeighborDiscoveryC;
 
     components FloodingC;
     Node.Flooding -> FloodingC;
