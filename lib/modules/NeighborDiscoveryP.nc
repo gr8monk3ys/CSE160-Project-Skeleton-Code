@@ -17,6 +17,7 @@ implementation{
  
     //the pdf said to get a reply rather than an initial ping... so we can change the state of the packet to a reply 
     void Reply(pack* msg) {
+        
         msg->src = TOS_NODE_ID; //the node in question (intital node)
         msg->protocol = PROTOCOL_PINGREPLY; //from the protocol.h file
         //that reply is now sent via the Nodes:
@@ -24,9 +25,7 @@ implementation{
     }
 
     
-
-    
-    //we also want to add a timer at some point:
+    //we also want to add a timer at some point.. according to the PDF:
 
 
 
@@ -52,8 +51,9 @@ implementation{
 
         dbg(NEIGHBOR_CHANNEL, "Neighbors of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
 
-        for (i = 0; i < call NeighborDiscovery.numNeighbors(); i++){ //using our num neighbors function to get the numberb of neighbors 
-            dbg(NEIGHBOR_CHANNEL, "%d\n", NeighborNodes[i]); //actually printing the neighbors
+        for (i = 0; i < call NeighborDiscovery.numNeighbors(); i++){ //using our num neighbors function to get the number of neighbors 
+
+            dbg(NEIGHBOR_CHANNEL, "Neighbor Node: %d\n", NeighborNodes[i]); //actually printing the neighbors
         }
     }
 
@@ -65,6 +65,6 @@ implementation{
         NeighborPack->TTL = 1;
         NeighborPack->seq = seq;
         NeighborPack->protocol = PROTOCOL_PING;
-        memcpy(NeighborPack->payload, 10);
+        memcpy(NeighborPack->payload, 10); //the sequence can be changed?
     }
 }
