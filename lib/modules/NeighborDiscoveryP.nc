@@ -103,6 +103,6 @@ implementation{
         neighborPack->TTL = 1;
         neighborPack->seq = seq;
         neighborPack->protocol = PROTOCOL_PING; //a ping and not a reply
-        memcpy(neighborPack->payload, 10); //the sequence can be changed?
+        memcpy(neighborPack->payload, "Neighbor Discovery\n", 10); //the sequence can be changed?
     }
 }

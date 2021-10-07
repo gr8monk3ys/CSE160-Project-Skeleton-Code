@@ -27,13 +27,13 @@ implementation {
          // a variable able to represent a packet will equal a packet within the list == the previous packet
          packID previous = call PreviousPackets.get(i);
 
-         dbg(FLOODING_CHANNEL, "Previous packets size: %d\n", previous);
+         //dbg(FLOODING_CHANNEL, "Previous packets size: %d\n", previous);
 
             // if the previous source (packet) = to the previous location.... we know that we have hit the same place with the same packet:
             if(previous.src == src && previous.seq == seq){
                return TRUE;
             }
-         dbg(FLOODING_CHANNEL, "FLAG");
+        // dbg(FLOODING_CHANNEL, "FLAG");
          i++; // so the program actually dies
       }
       return FALSE;
@@ -58,7 +58,7 @@ implementation {
       if(msg -> src != TOS_NODE_ID && msg -> dest != AM_BROADCAST_ADDR) {
 
          // displaying a message along the Flooding Channel that will display the source node and destination node:
-         dbg(FLOODING_CHANNEL, "Source (Recieved): %d. Destination(Sent): %d\n", msg -> src, msg -> dest);
+         //dbg(FLOODING_CHANNEL, "Source (Recieved): %d. Destination(Sent): %d\n", msg -> src, msg -> dest);
 
          // != TOS_NODE_ID == source node
          // AM_BROADCAST_ADDR == destination (from where a message is being broadcasted)
@@ -78,7 +78,7 @@ implementation {
          
       }
       call PreviousPackets.pushback(packet); // pushing a packet into the list of sent packets.
-      dbg(FLOODING_CHANNEL, "Packet being sent (ID): %d\n" , packet);
+     // dbg(FLOODING_CHANNEL, "Packet being sent (ID): %d\n" , packet);
 
       floodTrack(msg); // actually sending the message 
    } //  end of Flooding.ping
