@@ -22,10 +22,15 @@ module Node{
 
    uses interface SimpleSend as Sender;
 
+
+   //used to handle commands:
    uses interface CommandHandler;
 
+
+   //used for neighbor discovery:
    uses interface NeighborDiscovery;
 
+   //used for flooding:
    uses interface Flooding;
 }
 
