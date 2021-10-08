@@ -11,11 +11,22 @@ module NeighborDiscoveryP {
 implementation{
 
     const uint16_t THRESHOLD = 5;
- 
-    //the pdf said to get a reply rather than an initial ping... so we can change the state of the packet to a reply 
-    void Reply(pack* msg) {
 
-        dbg(GENERAL_CHANNEL, "Flag - accessed Reply protocol");
+    // expanding on the make pack algo by explicitly defining it:
+    void makePack(pack* neighborPack, uint16_t seq){
+        neighborPack->src = TOS_NODE_ID;
+        neighborPack->dest = AM_BROADCAST_ADDR;
+        neighborPack->TTL = 0;
+        neighborPack->seq = seq;
+        neighborPack->protocol = PROTOCOL_PING; //a ping and not a reply
+
+        // dbg(NEIGHBOR_CHANNEL, "Within: makePack()\n");
+        dbg(NEIGHBOR_CHANNEL, "Source Node: %d\n", neighborPack->src);
+        memcpy(neighborPack->payload, "Neighbor Discovery\n", 19);
+    }
+ 
+    void Reply(pack* msg) {
+        dbg(NEIGHBOR_CHANNEL, "Flag - accessed Reply protocol");
         msg->src = TOS_NODE_ID; //the node in question (intital node)
         msg->protocol = PROTOCOL_PINGREPLY; //from the protocol.h file
         //that reply is now sent via the Nodes:
@@ -27,12 +38,9 @@ implementation{
         uint16_t i = 0;
         uint32_t* neighborNodes = call NeighborNodes.getKeys();
 
-        // Subtract 1 'clock cycle' from all the timeout values
         while(i < call NeighborNodes.size()){
             uint16_t timeout = call NeighborNodes.get(neighborNodes[i]);
             call NeighborNodes.insert(neighborNodes[i], timeout - 1);
-
-            // Node stopped replying, drop it
             if (timeout - 1 <= 0) {
                 call NeighborNodes.remove(neighborNodes[i]);
             }
@@ -40,75 +48,59 @@ implementation{
         }
     }
 
-     // expanding on the make pack algo by explicitly defining it:
-    void makePack(pack* neighborPack, uint16_t seq){
-        neighborPack->src = TOS_NODE_ID;
-        neighborPack->dest = AM_BROADCAST_ADDR;
-        neighborPack->TTL = 0;
-        neighborPack->seq = seq;
-        neighborPack->protocol = PROTOCOL_PING; //a ping and not a reply
-
-        dbg(GENERAL_CHANNEL, "Flag - within make pack\n");
-        dbg(GENERAL_CHANNEL, "src: %d\n", neighborPack->src);
-    }
-
     command void NeighborDiscovery.find(uint16_t seq) {
         pack neighborPack; //a new pack called Neighbor pack
-        dbg(GENERAL_CHANNEL, "Flag - within find\n");
+        // dbg(NEIGHBOR_CHANNEL, "Within: find()\n");
         makePack(&neighborPack, seq); //making a new packet with a sequence
         call Sender.send(neighborPack, AM_BROADCAST_ADDR); //sending out packet w said attributes 
     }
 
      //getting our NeighborNodes in a table:
     command uint16_t* NeighborDiscovery.gatherNeighbors() {
-        dbg(GENERAL_CHANNEL, "Flag - within gather NeighborNodes\n");
-                //must return with function call
-        dbg(GENERAL_CHANNEL, "Contents: %d\n", call NeighborNodes.getKeys());
+        //must return with function call
+        // dbg(NEIGHBOR_CHANNEL, "Contents: %d\n", call NeighborNodes.getKeys());
         return call NeighborNodes.getKeys(); //components of the map: .getKeys() is given as a helper function in Hashmap.nc
-
-       
     }
 
     //getting the number of NeighborNodes
     command uint16_t NeighborDiscovery.numNeighbors(){
 
-        dbg(GENERAL_CHANNEL, "Flag - within num NeighborNodes\n");
+        // dbg(NEIGHBOR_CHANNEL, "Within: numNeighbors()\n");
 
         //get the size of the Neighbor Nodes 
-        dbg(GENERAL_CHANNEL, "Size: %d\n ", call NeighborNodes.size());
+        dbg(NEIGHBOR_CHANNEL, "Size: %d\n ", call NeighborNodes.size());
         return call NeighborNodes.size();
        
     }
 
     //to print the NeighborNodes:
     command void NeighborDiscovery.printNeighbors(){
-        //dbg(NEIGHBOR_CHANNEL, "Flag - within print NeighborNodes... before while loop");
-        uint16_t i = 0; //arbitrary int 
-        //a unsigned int to take over as the neighbor node gathered
-        uint32_t* neighborNodes  = call NeighborDiscovery.gatherNeighbors(); //we want to gather the NeighborNodes in the table
+        uint16_t i = 0; 
 
-        dbg(GENERAL_CHANNEL, "Neighbor Nodes of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
-        dbg(GENERAL_CHANNEL, "i:  %d\n ", i);
+        //we want to gather the NeighborNodes in the table
+        uint32_t* neighborNodes = call NeighborDiscovery.gatherNeighbors(); 
+
+        dbg(NEIGHBOR_CHANNEL, "Neighbor Nodes of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
+        dbg(NEIGHBOR_CHANNEL, "i:  %d\n ", i);
         while(i < call NeighborDiscovery.numNeighbors()){
-            dbg(GENERAL_CHANNEL, "Flag - within print NeighborNodes... in while loop\n");
+            dbg(NEIGHBOR_CHANNEL, "Within: print NeighborNodes... in while loop\n");
             
             //using our num NeighborNodes function to get the number of NeighborNodes 
-            dbg(GENERAL_CHANNEL, "Neighbor Node: %d\n", neighborNodes[i]); //actually printing the NeighborNodes    
+            dbg(NEIGHBOR_CHANNEL, "Neighbor Node: %d\n", neighborNodes[i]); //actually printing the NeighborNodes    
             i++;
         }
 
-        dbg(GENERAL_CHANNEL, "---------------------------\n");
+        dbg(NEIGHBOR_CHANNEL, "---------------------------\n");
     }
 
-    void displayBasedoffProtocol(pack* msg) {
-         //checking if the protocol is of reply
-         dbg(NEIGHBOR_CHANNEL, "Flag - within display protocol\n");
+    void displayOffProtocol(pack* msg) {
+        //checking if the protocol is of ping
         if(msg->protocol == PROTOCOL_PING) {
 
-            dbg(NEIGHBOR_CHANNEL, "Neighbor reply from %d. Adding to neighbor list...\n", msg->src);
+            dbg(NEIGHBOR_CHANNEL, "Neighbor reply from %d. Adding to neighbor list\n", msg->src);
             call NeighborNodes.insert(msg->src, THRESHOLD);
-        }
-        //checking if the protocol is of ping
+        }        
+        //checking if the protocol is of reply
         else if(msg->protocol == PROTOCOL_PINGREPLY){
      
             dbg(NEIGHBOR_CHANNEL, "Neighbor discovery from %d. Adding to list & replying...\n", msg->src);
@@ -117,17 +109,15 @@ implementation{
             Reply(msg);
         }
         else{
-
-             dbg(GENERAL_CHANNEL, "Wrong Protocol Type%d\n", msg->protocol);
+             dbg(NEIGHBOR_CHANNEL, "Wrong Protocol Type%d\n", msg->protocol);
         }          
     }
 
     //we want to recieve the message:
     command void NeighborDiscovery.recieve(pack* msg){
-        
-        dbg(GENERAL_CHANNEL, "Flag - within recieve protocol\n");
+
         //we want the DBG to display a few things:... we will more than likely need a new function based off the protocol. 
-        displayBasedoffProtocol(msg);
+        displayOffProtocol(msg);
     }
 
 }
