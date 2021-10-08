@@ -140,15 +140,16 @@ def main():
     s.addChannel(s.FLOODING_CHANNEL);
     s.addChannel(s.NEIGHBOR_CHANNEL);
 
+    # Flooding
     s.runTime(20);
     s.ping(1, 2, "Hi");
     s.runTime(10);
-    s.ping(1, 3, "Hi again");
     
-    s.runTime(50);
-    for i in range(s.numMote + 1):
-        s.runTime(20);
-        s.neighborDMP(i + 1);
+    # Neighbor Discovery
+    # s.runTime(50);
+    # for i in range(s.numMote + 1):
+    #     s.runTime(20);
+    #     s.neighborDMP(i + 1);
 
 if __name__ == '__main__':
     main()
