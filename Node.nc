@@ -47,7 +47,7 @@ implementation{
    // Gets called for initial processes
    event void Boot.booted(){
       call AMControl.start();
-      call NeighborTimer.startPeriodic(randNum(25000, 30000));
+      call NeighborTimer.startOneShot(30000);
       dbg(GENERAL_CHANNEL, "Booted\n");
    }
 
@@ -65,7 +65,9 @@ implementation{
 
    //a function when we recieve packets:
    event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len){
+      
       dbg(GENERAL_CHANNEL, "Packet Received\n");
+
       if(len == sizeof(pack)){
          pack* myMsg = (pack*) payload;
          
@@ -88,7 +90,7 @@ implementation{
             call NeighborDiscovery.recieve(myMsg);   
          }
       }
-      dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
+      // dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
       return msg;
    }
 
@@ -102,7 +104,7 @@ implementation{
    }
 
    ///////////////////////////////
-   
+
    //To run neighbor discovery:
     event void NeighborTimer.fired() {
         call NeighborDiscovery.find(seq);
