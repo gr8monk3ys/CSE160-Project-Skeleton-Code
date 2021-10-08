@@ -38,6 +38,7 @@ implementation{
       return (hash2(k)+ i*hash3(k))%HASH_MAX_SIZE;
    }
 
+   //for insertion into the list:
    command void Hashmap.insert(uint32_t k, t input){
       uint32_t i=0;	uint32_t j=0;
 
