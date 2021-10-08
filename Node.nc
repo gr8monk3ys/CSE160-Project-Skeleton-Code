@@ -22,32 +22,38 @@ module Node{
 
    uses interface SimpleSend as Sender;
 
+   uses interface Random as Random;
+
 
    //used to handle commands:
    uses interface CommandHandler;
 
 
    //used for neighbor discovery:
+   uses interface Timer<TMilli> as NeighborTimer;
    uses interface NeighborDiscovery;
+  //uses interface NeighborDiscovery as NeighborStart;
 
    //used for flooding:
    uses interface Flooding;
 
 
    //since it was recommended to use a timer:
-  // uses interface Timer<TMilli>;
+  
    // uses interface NeighborDiscovery;
 }
 
 implementation{
    pack sendPackage;
+   uint16_t seq = 1;
 
    // Prototypes
    void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
-
+   uint32_t randNum(uint32_t min, uint32_t max);
    // Gets called for initial processes
    event void Boot.booted(){
       call AMControl.start();
+      call NeighborTimer.startPeriodic(randNum(1000, 2000));
       
       dbg(GENERAL_CHANNEL, "Booted\n");
    }
@@ -79,12 +85,17 @@ implementation{
       }
          
       // If there is no TTL, return message
-      if(myMsg -> TTL == 0) {
+      else if(myMsg -> TTL == 0) {
          return msg;
       }
 
       //Neighbor discovery for recieve
-      // Insert here
+      // now starting up Neighbor discovery:
+
+      else if (myMsg -> dest == AM_BROADCAST_ADDR){
+         call NeighborDiscovery.recieve(myMsg);  
+          
+      }
 
          dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg -> payload);
          return msg;
@@ -96,14 +107,22 @@ implementation{
 
    // Called to give a ping command to any called nodes
    event void CommandHandler.ping(uint16_t destination, uint8_t *payload){
+      
       dbg(GENERAL_CHANNEL, "PING EVENT \n");
-      makePack(&sendPackage, TOS_NODE_ID, destination, 5, 0, 0, payload, PACKET_MAX_PAYLOAD_SIZE);
+      
+      makePack(&sendPackage, TOS_NODE_ID, destination, 0, PROTOCOL_PING, seq, payload, PACKET_MAX_PAYLOAD_SIZE);
       call Sender.send(sendPackage, destination);
    }
 
+   ///////////////////////////////
+   //To run neighbor discovery:
+    event void NeighborTimer.fired() {
+        call NeighborDiscovery.find(seq);
+    }
+
    // Issues a call to all neighboring IDs of a node
    event void CommandHandler.printNeighbors(){
-      
+      //TO ACTUALLY START THE FINDING METHOD, AND THE MAKE PACK FUNCTION
       call NeighborDiscovery.printNeighbors();
    }
 
@@ -131,4 +150,8 @@ implementation{
       Package->protocol = protocol;
       memcpy(Package->payload, payload, length);
    }
+
+   uint32_t randNum(uint32_t min, uint32_t max) {
+        return ( call Random.rand16() % (max-min+1) ) + min;
+    }
 }

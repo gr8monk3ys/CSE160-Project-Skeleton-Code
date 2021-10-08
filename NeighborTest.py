@@ -14,7 +14,7 @@ def main():
 
     # Add a noise model to all of the motes.
     s.loadNoise("no_noise.txt");
-
+ 
     # Turn on all of the sensors.
     s.bootAll();
 
@@ -25,20 +25,20 @@ def main():
 
     s.runTime(5);
 
-    #for i in range(1, 10):
-    #    s.runTime(5);
-    #    s.neighborDMP(i);
+    for i in range(1, 3):
+        s.runTime(5);
+        s.neighborDMP(i);
 
     s.runTime(5);
 
     s.neighborDMP(1);
     s.runTime(5);
 
-    #s.moteOff(3);
-    #s.runTime(15);
+    s.moteOff(3);
+    s.runTime(15);
 
-   # s.neighborDMP(5);
-   # s.runTime(5);
+    s.neighborDMP(5);
+    s.runTime(5);
 
 if __name__ == '__main__':
     main()

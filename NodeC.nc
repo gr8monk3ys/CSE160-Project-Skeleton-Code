@@ -25,6 +25,9 @@ implementation {
     components ActiveMessageC;
     Node.AMControl -> ActiveMessageC;
 
+    components RandomC;
+    Node.Random -> RandomC;
+
     components new SimpleSendC(AM_PACK);
     Node.Sender -> SimpleSendC;
 
@@ -33,6 +36,9 @@ implementation {
 
     components NeighborDiscoveryC;
     Node.NeighborDiscovery -> NeighborDiscoveryC;
+
+    components new TimerMilliC() as NeighborTimer;
+    Node.NeighborTimer -> NeighborTimer;
 
     components FloodingC;
     Node.Flooding -> FloodingC;
