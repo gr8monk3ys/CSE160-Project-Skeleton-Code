@@ -18,10 +18,4 @@ implementation {
 //Sending Packets... using the name sender
    components new SimpleSendC(AM_PACK);
    NeighborDiscoveryP.Sender -> SimpleSendC;
-
-   //components new recieve(pack* msg);
-   //NeighborDiscoveryP.recieve -> recieve; 
-
-   //components new printNeighbors();
-   //NeighborDiscoveryP.printNeighbors -> printNeighbors;
 }
