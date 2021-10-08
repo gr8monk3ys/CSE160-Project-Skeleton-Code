@@ -33,8 +33,7 @@ implementation {
             if(previous.src == src && previous.seq == seq){
                return TRUE;
             }
-        // dbg(FLOODING_CHANNEL, "FLAG");
-         i++; // so the program actually dies
+         i++;
       }
       return FALSE;
    } // end of is duplicate 
@@ -48,9 +47,7 @@ implementation {
          return FALSE;
          
        } 
-     // else{
-      //  }
-   }// end of drop duplicate 
+   } // end of drop duplicate 
 
    //  This checks to see if the source and the destination have been established yet for debugging purposes
    void floodTrack(pack* msg) {
