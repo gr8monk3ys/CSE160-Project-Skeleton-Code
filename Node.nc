@@ -72,14 +72,13 @@ implementation{
          pack* myMsg = (pack*) payload;
          
          // Flooding for recieve
-         while(myMsg -> TTL > 0){
-            myMsg -> TTL = myMsg -> TTL - 1;
+         if(myMsg -> TTL > 0){
+            // myMsg -> TTL = myMsg -> TTL - 1;
             call Flooding.ping(myMsg);
          
             // If there is no TTL, return message
-            if(myMsg -> TTL == 0) {
+            if(myMsg -> TTL == 0){
                return msg;
-               break;
             }
          dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg -> payload);
          return msg;
@@ -90,7 +89,7 @@ implementation{
             call NeighborDiscovery.recieve(myMsg);   
          }
       }
-      // dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
+      dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
       return msg;
    }
 
@@ -99,7 +98,7 @@ implementation{
       
       dbg(GENERAL_CHANNEL, "PING EVENT \n");
       
-      makePack(&sendPackage, TOS_NODE_ID, destination, 0, PROTOCOL_PING, seq, payload, PACKET_MAX_PAYLOAD_SIZE);
+      makePack(&sendPackage, TOS_NODE_ID, destination, 19, PROTOCOL_PING, seq, payload, PACKET_MAX_PAYLOAD_SIZE);
       call Sender.send(sendPackage, destination);
    }
 
