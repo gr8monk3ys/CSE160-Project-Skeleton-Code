@@ -36,7 +36,7 @@ implementation{
         uint32_t* neighborNodes = call NeighborNodes.getKeys();
 
         // Subtract 1 'clock cycle' from all the timeout values
-        while(i < NeighborNodes.size()){
+        while(i < call NeighborNodes.size()){
             uint16_t timeout = call NeighborNodes.get(neighborNodes[i]);
             call NeighborNodes.insert(neighborNodes[i], timeout - 1);
 
