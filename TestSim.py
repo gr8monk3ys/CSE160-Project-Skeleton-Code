@@ -144,8 +144,11 @@ def main():
     s.ping(1, 2, "Hi");
     s.runTime(10);
     s.ping(1, 3, "Hi again");
-    s.runTime(20);
-    s.neighborDMP(1);
+    
+    s.runTime(50);
+    for i in range(s.numMote + 1):
+        s.runTime(20);
+        s.neighborDMP(i + 1);
 
 if __name__ == '__main__':
     main()
