@@ -21,8 +21,7 @@ implementation{
         //that reply is now sent via the Nodes:
         call Sender.send(*msg, AM_BROADCAST_ADDR);
     }
-
-    //we also want to add a timer at some point.. according to the PDF:
+    
     //Timer
     void decrement_timeout() {
         uint16_t i = 0;
@@ -41,8 +40,6 @@ implementation{
         }
     }
 
-    // makePack(&sendPack, TOS_NODE_ID, AM_BROADCAST_ADDR, 0, 255, 0, call NeighborList.toArray(), PACKET_MAX_PAYLOAD_SIZE);
-
      // expanding on the make pack algo by explicitly defining it:
     void makePack(pack* neighborPack, uint16_t seq){
         neighborPack->src = TOS_NODE_ID;
@@ -53,8 +50,6 @@ implementation{
 
         dbg(GENERAL_CHANNEL, "Flag - within make pack\n");
         dbg(GENERAL_CHANNEL, "src: %d\n", neighborPack->src);
-       
-        memcpy(neighborPack->payload, "Length Payload\n", 19); //the sequence can be changed?
     }
 
     command void NeighborDiscovery.find(uint16_t seq) {
