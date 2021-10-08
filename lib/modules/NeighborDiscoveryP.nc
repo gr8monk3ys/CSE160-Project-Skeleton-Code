@@ -11,6 +11,7 @@ module NeighborDiscoveryP {
 }
 
 implementation{
+
     const uint16_t TIMEOUT_CYCLES = 5;
 
     //we will need to create our own packet to work with.... like using make pack.. calling the function
@@ -22,7 +23,7 @@ implementation{
     //the pdf said to get a reply rather than an initial ping... so we can change the state of the packet to a reply 
     void Reply(pack* msg) {
 
-        dbg(NEIGHBOR_CHANNEL, "Flag - within Reply");
+        dbg(GENERAL_CHANNEL, "Flag - within Reply");
         msg->src = TOS_NODE_ID; //the node in question (intital node)
         msg->protocol = PROTOCOL_PINGREPLY; //from the protocol.h file
         //that reply is now sent via the Nodes:
@@ -82,8 +83,8 @@ implementation{
         neighborPack->seq = seq;
         neighborPack->protocol = PROTOCOL_PING; //a ping and not a reply
 
-        dbg(NEIGHBOR_CHANNEL, "Flag - within make pack\n");
-        dbg(NEIGHBOR_CHANNEL, "src: %d\n", neighborPack->src);
+        dbg(GENERAL_CHANNEL, "Flag - within make pack\n");
+        dbg(GENERAL_CHANNEL, "src: %d\n", neighborPack->src);
        
         memcpy(neighborPack->payload, "Length Payload\n", 19); //the sequence can be changed?
         // neighborPack -> TTL += 1;
@@ -91,7 +92,7 @@ implementation{
 
     command void NeighborDiscovery.find(uint16_t seq) {
         pack neighborPack; //a new pack called Neighbor pack
-        dbg(NEIGHBOR_CHANNEL, "Flag - within find\n");
+        dbg(GENERAL_CHANNEL, "Flag - within find\n");
         makePack(&neighborPack, seq); //making a new packet with a sequence
         call Sender.send(neighborPack, AM_BROADCAST_ADDR); //sending out packet w said attributes 
     }
@@ -99,16 +100,16 @@ implementation{
     //we want to recieve the message:
     command void NeighborDiscovery.recieve(pack* msg){
         
-        dbg(NEIGHBOR_CHANNEL, "Flag - within recieve\n");
+        dbg(GENERAL_CHANNEL, "Flag - within recieve\n");
         //we want the DBG to display a few things:... we will more than likely need a new function based off the protocol. 
         displayBasedoffProtocol(msg);
     }
 
      //getting our NeighborNodes in a table:
     command uint16_t* NeighborDiscovery.gatherNeighbors() {
-        dbg(NEIGHBOR_CHANNEL, "Flag - within gather NeighborNodes\n");
+        dbg(GENERAL_CHANNEL, "Flag - within gather NeighborNodes\n");
                 //must return with function call
-         dbg(NEIGHBOR_CHANNEL, "Contents: %d\n", call NeighborNodes.getKeys());
+         dbg(GENERAL_CHANNEL, "Contents: %d\n", call NeighborNodes.getKeys());
         return call NeighborNodes.getKeys(); //components of the map: .getKeys() is given as a helper function in Hashmap.nc
 
        
@@ -117,9 +118,9 @@ implementation{
     //getting the number of NeighborNodes
     command uint16_t NeighborDiscovery.numNeighbors(){
 
-        dbg(NEIGHBOR_CHANNEL, "Flag - within num NeighborNodes\n");
+        dbg(GENERAL_CHANNEL, "Flag - within num NeighborNodes\n");
             //get the size of the Neighbor Nodes 
-        dbg(NEIGHBOR_CHANNEL, "Size: %d\n ", call NeighborNodes.size());
+        dbg(GENERAL_CHANNEL, "Size: %d\n ", call NeighborNodes.size());
             return call NeighborNodes.size();
        
     }
@@ -131,16 +132,20 @@ implementation{
         //a unsigned int to take over as the neighbor node gathered
         uint32_t* neighborNodes  = call NeighborDiscovery.gatherNeighbors(); //we want to gather the NeighborNodes in the table
 
-        dbg(NEIGHBOR_CHANNEL, "NeighborNodes of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
-        
+        dbg(GENERAL_CHANNEL, "Neighbor Nodes of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
+        dbg(GENERAL_CHANNEL, "i:  %d\n ", i);
         while(i < call NeighborDiscovery.numNeighbors()){
-            dbg(NEIGHBOR_CHANNEL, "Flag - within print NeighborNodes... in while loop\n");
+            dbg(GENERAL_CHANNEL, "Flag - within print NeighborNodes... in while loop\n");
         //using our num NeighborNodes function to get the number of NeighborNodes 
 
-            dbg(NEIGHBOR_CHANNEL, "Neighbor Node: %d\n", neighborNodes[i]); //actually printing the NeighborNodes
+            dbg(GENERAL_CHANNEL, "Neighbor Node: %d\n", neighborNodes[i]); //actually printing the NeighborNodes
+
+           
             
             i++; //to end the loop at some point
         }
+
+         dbg(GENERAL_CHANNEL, "---------------------------\n");
     }
 
    
