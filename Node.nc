@@ -79,19 +79,17 @@ implementation{
                return msg;
                break;
             }
+         dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg -> payload);
+         return msg;
          }
             
          //Neighbor discovery for recieve
          if (myMsg -> dest == AM_BROADCAST_ADDR){
             call NeighborDiscovery.recieve(myMsg);   
          }
-
-         dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg -> payload);
-         return msg;
       }
-
-   dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
-   return msg;
+      dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
+      return msg;
    }
 
    // Called to give a ping command to any called nodes
@@ -104,6 +102,7 @@ implementation{
    }
 
    ///////////////////////////////
+   
    //To run neighbor discovery:
     event void NeighborTimer.fired() {
         call NeighborDiscovery.find(seq);
