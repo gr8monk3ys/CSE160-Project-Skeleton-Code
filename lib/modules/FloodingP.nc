@@ -8,8 +8,6 @@ module FloodingP {
    uses interface SimpleSend as Sender; // Now referred to as Sender 
 }
 
-// Logic of the code:
-
 implementation {
 
    // Global variables
@@ -60,19 +58,16 @@ implementation {
          // != TOS_NODE_ID == source node
          // AM_BROADCAST_ADDR == destination (from where a message is being broadcasted)
       }
-      // call to send 
+      // call to send
       call Sender.send(*msg, AM_BROADCAST_ADDR); // message to be sent, destination where message will be sent
    }// end of Flood Track
 
 
    //  This does the actual flooding by checking all endpoints and then proceeding once checked
    command void Flooding.ping(pack* msg) {
-      if(dropDuplicate(msg)) {
-         
-         
+      if(dropDuplicate(msg)) {   
          packet.src = msg -> src; // packet source
          packet.seq = msg -> seq; // packet sequence 
-         
       }
       call PreviousPackets.pushback(packet); // pushing a packet into the list of sent packets.
      // dbg(FLOODING_CHANNEL, "Packet being sent (ID): %d\n" , packet);
