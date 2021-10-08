@@ -28,19 +28,23 @@ module Node{
 
 
    //used for neighbor discovery:
+  // uses interface NeighborDiscovery as NeighborStart;
+   //uses interface Timer<TMilli> as NeighborTime;
    uses interface NeighborDiscovery;
+   //uses interface NeighborDiscovery as NeighborStart;
 
    //used for flooding:
    uses interface Flooding;
 
 
    //since it was recommended to use a timer:
-  // uses interface Timer<TMilli>;
+  
    // uses interface NeighborDiscovery;
 }
 
 implementation{
    pack sendPackage;
+   uint16_t seq = 1;
 
    // Prototypes
    void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
@@ -84,7 +88,11 @@ implementation{
       }
 
       //Neighbor discovery for recieve
-      // Insert here
+      // now starting up Neighbor discovery:
+       
+      if (myMsg -> dest == AM_BROADCAST_ADDR){
+         call NeighborDiscovery.recieve(myMsg);
+      }
 
          dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg -> payload);
          return msg;
@@ -96,13 +104,24 @@ implementation{
 
    // Called to give a ping command to any called nodes
    event void CommandHandler.ping(uint16_t destination, uint8_t *payload){
+      
       dbg(GENERAL_CHANNEL, "PING EVENT \n");
+      
       makePack(&sendPackage, TOS_NODE_ID, destination, 5, 0, 0, payload, PACKET_MAX_PAYLOAD_SIZE);
       call Sender.send(sendPackage, destination);
    }
 
+   ///////////////////////////////
+   //To run neighbor discovery:
+
+   //event void NeighborStart.ping(){
+      //call NeighborDiscovery.find(seq);
+  // }
+
    // Issues a call to all neighboring IDs of a node
    event void CommandHandler.printNeighbors(){
+      //TO ACTUALLY START THE FINDING METHOD, AND THE MAKE PACK FUNCTION
+      //call NeighborDiscovery.find(seq);
       
       call NeighborDiscovery.printNeighbors();
    }
