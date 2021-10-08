@@ -24,26 +24,20 @@ module Node{
 
    uses interface Random as Random;
 
-
    //used to handle commands:
    uses interface CommandHandler;
-
 
    //used for neighbor discovery:
    uses interface Timer<TMilli> as NeighborTimer;
    uses interface NeighborDiscovery;
-  //uses interface NeighborDiscovery as NeighborStart;
 
    //used for flooding:
    uses interface Flooding;
 
-
-   //since it was recommended to use a timer:
-  
-   // uses interface NeighborDiscovery;
 }
 
 implementation{
+
    pack sendPackage;
    uint16_t seq = 1;
 
@@ -54,7 +48,6 @@ implementation{
    event void Boot.booted(){
       call AMControl.start();
       call NeighborTimer.startPeriodic(randNum(25000, 30000));
-      
       dbg(GENERAL_CHANNEL, "Booted\n");
    }
 
@@ -71,38 +64,34 @@ implementation{
    event void AMControl.stopDone(error_t err){}
 
    //a function when we recieve packets:
-
    event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len){
       dbg(GENERAL_CHANNEL, "Packet Received\n");
       if(len == sizeof(pack)){
          pack* myMsg = (pack*) payload;
          
          // Flooding for recieve
-      
-      if(myMsg -> TTL > 0){
-         myMsg -> TTL = myMsg -> TTL - 1;
-         call Flooding.ping(myMsg);
-      }
+         while(myMsg -> TTL > 0){
+            myMsg -> TTL = myMsg -> TTL - 1;
+            call Flooding.ping(myMsg);
          
-      // If there is no TTL, return message
-      else if(myMsg -> TTL == 0) {
-         return msg;
-      }
-
-      //Neighbor discovery for recieve
-      // now starting up Neighbor discovery:
-
-      else if (myMsg -> dest == AM_BROADCAST_ADDR){
-         call NeighborDiscovery.recieve(myMsg);  
-          
-      }
+            // If there is no TTL, return message
+            if(myMsg -> TTL == 0) {
+               return msg;
+               break;
+            }
+         }
+            
+         //Neighbor discovery for recieve
+         if (myMsg -> dest == AM_BROADCAST_ADDR){
+            call NeighborDiscovery.recieve(myMsg);   
+         }
 
          dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg -> payload);
          return msg;
       }
 
-      dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
-      return msg;
+   dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
+   return msg;
    }
 
    // Called to give a ping command to any called nodes
@@ -123,7 +112,7 @@ implementation{
    // Issues a call to all neighboring IDs of a node
    event void CommandHandler.printNeighbors(){
       //TO ACTUALLY START THE FINDING METHOD, AND THE MAKE PACK FUNCTION
-      call NeighborDiscovery.printNeighbors();
+     call NeighborDiscovery.printNeighbors();
    }
 
    //to print the table 
