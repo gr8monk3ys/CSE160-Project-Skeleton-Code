@@ -16,6 +16,7 @@ implementation {
          logPack(msg);
          msg->protocol = TOS_NODE_ID;
          msg->TTL -= 1;
+         
          if(msg->dest != TOS_NODE_ID && msg->seq != storedSeq){
             storedSeq = msg->seq;
             call Sender.send(*msg, AM_BROADCAST_ADDR);
