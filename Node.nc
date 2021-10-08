@@ -53,7 +53,7 @@ implementation{
    // Gets called for initial processes
    event void Boot.booted(){
       call AMControl.start();
-      call NeighborTimer.startPeriodic(randNum(1000, 2000));
+      call NeighborTimer.startPeriodic(randNum(25000, 30000));
       
       dbg(GENERAL_CHANNEL, "Booted\n");
    }
