@@ -13,12 +13,15 @@ module NeighborDiscoveryP {
 implementation{
 
     //we will need to create our own packet to work with.... like using make pack.. calling the function
-    void makePack(pack* neighborPack, uint16_t seq);
+    void makePack(pack* neighborPack, uint16_t seq){
+        dbg(NEIGHBOR_CHANNEL, "Flag - within Make pack\n");
+    }
 
  
     //the pdf said to get a reply rather than an initial ping... so we can change the state of the packet to a reply 
     void Reply(pack* msg) {
 
+        dbg(NEIGHBOR_CHANNEL, "Flag - within Reply");
         msg->src = TOS_NODE_ID; //the node in question (intital node)
         msg->protocol = PROTOCOL_PINGREPLY; //from the protocol.h file
         //that reply is now sent via the Nodes:
@@ -52,34 +55,39 @@ implementation{
 
     command void NeighborDiscovery.find(uint16_t seq) {
         pack neighborPack; //a new pack called Neighbor pack
+        dbg(NEIGHBOR_CHANNEL, "Flag - within find\n");
         makePack(&neighborPack, seq); //making a new packet with a sequence
 
+        
         call Sender.send(neighborPack, AM_BROADCAST_ADDR); //sending out packet w said attributes 
     }
 
     //we want to recieve the message:
     command void NeighborDiscovery.recieve(pack* msg){
-
+        
+        dbg(NEIGHBOR_CHANNEL, "Flag - within recieve\n");
             //we want the DBG to display a few things:... we will more than likely need a new function based off the protocol. 
        displayBasedoffProtocol(msg);
     }
 
      //getting our neighbors in a table:
     command uint16_t* NeighborDiscovery.gatherNeighbors() {
-                
+        dbg(NEIGHBOR_CHANNEL, "Flag - within gather neighbors\n");
                 //must return with function call
         return call NeighborNodes.getKeys(); //components of the map: .getKeys() is given as a helper function in Hashmap.nc
     }
 
-
     //getting the number of neighbors
     command uint16_t NeighborDiscovery.numNeighbors(){
+
+        dbg(NEIGHBOR_CHANNEL, "Flag - within num neighbors\n");
             //get the size of the Neighbor Nodes 
             return call NeighborNodes.size();
     }
 
     //to print the neighbors:
     command void NeighborDiscovery.printNeighbors() {
+        //dbg(NEIGHBOR_CHANNEL, "Flag - within print neighbors... before while loop");
         uint16_t i = 0; //arbitrary int 
         //a unsigned int to take over as the neighbor node gathered
         uint32_t* neighborNodes  = call NeighborDiscovery.gatherNeighbors(); //we want to gather the Neighbors in the table
@@ -87,7 +95,7 @@ implementation{
         dbg(NEIGHBOR_CHANNEL, "Neighbors of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
         
         while(i < call NeighborDiscovery.numNeighbors()){
-
+            dbg(NEIGHBOR_CHANNEL, "Flag - within print neighbors... in while loop\n");
         //using our num neighbors function to get the number of neighbors 
 
             dbg(NEIGHBOR_CHANNEL, "Neighbor Node: %d\n", neighborNodes[i]); //actually printing the neighbors
@@ -103,6 +111,7 @@ implementation{
         neighborPack->TTL = 1;
         neighborPack->seq = seq;
         neighborPack->protocol = PROTOCOL_PING; //a ping and not a reply
+        dbg(NEIGHBOR_CHANNEL, "Flag - within make pack\n");
         memcpy(neighborPack->payload, "Neighbor Discovery\n", 10); //the sequence can be changed?
     }
 }
