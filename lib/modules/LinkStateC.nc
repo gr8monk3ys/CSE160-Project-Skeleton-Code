@@ -1,5 +1,5 @@
-#include "../../includes/packet.h"
-#include "../../includes/packet_id.h"
+#include <Timer.h>
+#include "../../includes/route.h"
 
 configuration LinkStateC {
    provides interface LinkState; 
@@ -11,8 +11,8 @@ implementation LinkState {
    LinkState = LinkStateP;
 
 //List of packets... 
-   components new ListC(packID, 64);
-   FloodingP.PreviousPackets -> ListC;  
+   components new ListC(Route, 256);
+   LinkStateP.RoutingTable -> ListC;  
 
 //Sending Packets...
    components new SimpleSendC(AM_PACK);
