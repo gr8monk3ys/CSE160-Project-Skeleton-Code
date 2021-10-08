@@ -1,6 +1,4 @@
 #include "../../includes/packet.h"
-#include "../../includes/packet_id.h"
-
 
 configuration NeighborDiscoveryC {
    provides interface NeighborDiscovery; 

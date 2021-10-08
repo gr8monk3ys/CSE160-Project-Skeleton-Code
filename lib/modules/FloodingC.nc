@@ -1,6 +1,4 @@
 #include "../../includes/packet.h"
-#include "../../includes/packet_id.h"
-
 
 configuration FloodingC {
    provides interface Flooding; 
@@ -12,7 +10,7 @@ implementation {
    Flooding = FloodingP;
 
 //List of packets... 
-   components new ListC(packID, 64);
+   components new ListC(pack, 64);
    FloodingP.PreviousPackets -> ListC;  
 
 //Sending Packets...

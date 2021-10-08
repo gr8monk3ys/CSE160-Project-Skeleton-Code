@@ -1,6 +1,5 @@
 #include "../../includes/packet.h"
 #include "../../includes/protocol.h"
-#include "../../includes/packet_id.h"
 
 module NeighborDiscoveryP {
    provides interface NeighborDiscovery; // using same name
@@ -58,19 +57,13 @@ implementation{
      //getting our NeighborNodes in a table:
     command uint16_t* NeighborDiscovery.gatherNeighbors() {
         //must return with function call
-        // dbg(NEIGHBOR_CHANNEL, "Contents: %d\n", call NeighborNodes.getKeys());
         return call NeighborNodes.getKeys(); //components of the map: .getKeys() is given as a helper function in Hashmap.nc
     }
 
     //getting the number of NeighborNodes
     command uint16_t NeighborDiscovery.numNeighbors(){
-
-        // dbg(NEIGHBOR_CHANNEL, "Within: numNeighbors()\n");
-
         //get the size of the Neighbor Nodes 
-        dbg(NEIGHBOR_CHANNEL, "Size: %d\n ", call NeighborNodes.size());
-        return call NeighborNodes.size();
-       
+        return call NeighborNodes.size();    
     }
 
     //to print the NeighborNodes:
@@ -81,10 +74,8 @@ implementation{
         uint32_t* neighborNodes = call NeighborDiscovery.gatherNeighbors(); 
 
         dbg(NEIGHBOR_CHANNEL, "Neighbor Nodes of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
-        dbg(NEIGHBOR_CHANNEL, "i:  %d\n ", i);
+      
         while(i < call NeighborDiscovery.numNeighbors()){
-            dbg(NEIGHBOR_CHANNEL, "Within: print NeighborNodes... in while loop\n");
-            
             //using our num NeighborNodes function to get the number of NeighborNodes 
             dbg(NEIGHBOR_CHANNEL, "Neighbor Node: %d\n", neighborNodes[i]); //actually printing the NeighborNodes    
             i++;
