@@ -5,14 +5,12 @@
 module NeighborDiscoveryP {
    provides interface NeighborDiscovery; // using same name
    uses interface Hashmap<uint16_t> as NeighborNodes; // Now refered to as Previous Packets 
-   uses interface SimpleSend as Sender; // Now referred to as Sender 
-   //uses interface printNeighborNodes as printNeighborNodes;
-   //uses interface recieve;
+   uses interface SimpleSend as Sender; // Now referred to as Sender
 }
 
 implementation{
 
-    const uint16_t TIMEOUT_CYCLES = 5;
+    const uint16_t THRESHOLD = 5;
 
     //we will need to create our own packet to work with.... like using make pack.. calling the function
   //  void makePack(pack* neighborPack, uint16_t seq){
@@ -23,47 +21,22 @@ implementation{
     //the pdf said to get a reply rather than an initial ping... so we can change the state of the packet to a reply 
     void Reply(pack* msg) {
 
-        dbg(GENERAL_CHANNEL, "Flag - within Reply");
+        dbg(GENERAL_CHANNEL, "Flag - accessed Reply protocol");
         msg->src = TOS_NODE_ID; //the node in question (intital node)
         msg->protocol = PROTOCOL_PINGREPLY; //from the protocol.h file
         //that reply is now sent via the Nodes:
         call Sender.send(*msg, AM_BROADCAST_ADDR);
     }
 
-
-    void displayBasedoffProtocol(pack* msg) {
-         //checking if the protocol is of reply
-         dbg(NEIGHBOR_CHANNEL, "Flag - within protocol\n");
-        if(msg->protocol == PROTOCOL_PING) {
-
-            dbg(NEIGHBOR_CHANNEL, "Neighbor reply from %d. Adding to neighbor list...\n", msg->src);
-            call NeighborNodes.insert(msg->src, TIMEOUT_CYCLES);
-          
-        }
-        //checking if the protocol is of ping
-        else if(msg->protocol == PROTOCOL_PINGREPLY){
-     
-            dbg(NEIGHBOR_CHANNEL, "Neighbor discovery from %d. Adding to list & replying...\n", msg->src);
-            call NeighborNodes.insert(msg->src, TIMEOUT_CYCLES);
-            //need to change ping to reply
-            Reply(msg);
-        }
-        else{
-
-             dbg(GENERAL_CHANNEL, "Wrong Protocol Type%d\n", msg->protocol);
-        }          
-    
-    }
-
     //we also want to add a timer at some point.. according to the PDF:
     //Timer
 
     void decrement_timeout() {
-        uint16_t i;
+        uint16_t i = 0;
         uint32_t* neighborNodes = call NeighborNodes.getKeys();
 
         // Subtract 1 'clock cycle' from all the timeout values
-        for (i = 0; i < call NeighborNodes.size(); i++) {
+        while(i < NeighborNodes.size()){
             uint16_t timeout = call NeighborNodes.get(neighborNodes[i]);
             call NeighborNodes.insert(neighborNodes[i], timeout - 1);
 
@@ -71,6 +44,7 @@ implementation{
             if (timeout - 1 <= 0) {
                 call NeighborNodes.remove(neighborNodes[i]);
             }
+            i++;
         }
     }
 
@@ -95,14 +69,6 @@ implementation{
         dbg(GENERAL_CHANNEL, "Flag - within find\n");
         makePack(&neighborPack, seq); //making a new packet with a sequence
         call Sender.send(neighborPack, AM_BROADCAST_ADDR); //sending out packet w said attributes 
-    }
-
-    //we want to recieve the message:
-    command void NeighborDiscovery.recieve(pack* msg){
-        
-        dbg(GENERAL_CHANNEL, "Flag - within recieve\n");
-        //we want the DBG to display a few things:... we will more than likely need a new function based off the protocol. 
-        displayBasedoffProtocol(msg);
     }
 
      //getting our NeighborNodes in a table:
@@ -148,5 +114,35 @@ implementation{
          dbg(GENERAL_CHANNEL, "---------------------------\n");
     }
 
-   
+    void displayBasedoffProtocol(pack* msg) {
+         //checking if the protocol is of reply
+         dbg(NEIGHBOR_CHANNEL, "Flag - within display protocol\n");
+        if(msg->protocol == PROTOCOL_PING) {
+
+            dbg(NEIGHBOR_CHANNEL, "Neighbor reply from %d. Adding to neighbor list...\n", msg->src);
+            call NeighborNodes.insert(msg->src, THRESHOLD);
+          
+        }
+        //checking if the protocol is of ping
+        else if(msg->protocol == PROTOCOL_PINGREPLY){
+     
+            dbg(NEIGHBOR_CHANNEL, "Neighbor discovery from %d. Adding to list & replying...\n", msg->src);
+            call NeighborNodes.insert(msg->src, THRESHOLD);
+            //need to change ping to reply
+            Reply(msg);
+        }
+        else{
+
+             dbg(GENERAL_CHANNEL, "Wrong Protocol Type%d\n", msg->protocol);
+        }          
+    }
+
+    //we want to recieve the message:
+    command void NeighborDiscovery.recieve(pack* msg){
+        
+        dbg(GENERAL_CHANNEL, "Flag - within recieve protocol\n");
+        //we want the DBG to display a few things:... we will more than likely need a new function based off the protocol. 
+        displayBasedoffProtocol(msg);
+    }
+
 }
