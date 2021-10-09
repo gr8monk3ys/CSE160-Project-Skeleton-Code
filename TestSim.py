@@ -139,17 +139,40 @@ def main():
     s.addChannel(s.GENERAL_CHANNEL);
     s.addChannel(s.FLOODING_CHANNEL);
     s.addChannel(s.NEIGHBOR_CHANNEL);
+    s.addChannel(s.ROUTING_CHANNEL);
 
-    # Flooding
-    s.runTime(20);
-    s.ping(1, 2, "Hi");
-    s.runTime(10);
+    # Flooding Test
+    # s.runTime(20);
+    # s.ping(1, 2, "Hi");
+    # s.runTime(10);
     
-    # Neighbor Discovery
+    # Neighbor Discovery Test
     # s.runTime(50);
     # for i in range(s.numMote + 1):
     #     s.runTime(20);
     #     s.neighborDMP(i + 1);
+
+    # LinkState
+    s.runTime(100);
+    for i in range(1, 10):
+        s.routeDMP(i);
+        s.runTime(5);
+
+    s.ping(2, 9, "Test");
+    s.runTime(5);
+    
+    # Test routing with a suddenly invalidated path
+    s.moteOff(3);
+    s.runTime(100);
+
+    s.routeDMP(2);
+    s.runTime(5);
+
+    s.routeDMP(9);
+    s.runTime(5);
+
+    s.ping(2, 9, "Test");
+    s.runTime(5);
 
 if __name__ == '__main__':
     main()
