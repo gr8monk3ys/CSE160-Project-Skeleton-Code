@@ -34,12 +34,15 @@ implementation {
     components CommandHandlerC;
     Node.CommandHandler -> CommandHandlerC;
 
+    components FloodingC;
+    Node.Flooding -> FloodingC;
+
     components NeighborDiscoveryC;
     Node.NeighborDiscovery -> NeighborDiscoveryC;
 
     components new TimerMilliC() as NeighborTimer;
     Node.NeighborTimer -> NeighborTimer;
 
-    components FloodingC;
-    Node.Flooding -> FloodingC;
+    components LinkStateC;
+    Node.LinkState -> LinkStateC;
 }
