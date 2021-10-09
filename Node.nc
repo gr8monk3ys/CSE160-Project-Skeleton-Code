@@ -73,7 +73,6 @@ implementation{
          
          // Flooding for recieve
          if(myMsg -> TTL > 0){
-            // myMsg -> TTL = myMsg -> TTL - 1;
             call Flooding.ping(myMsg);
          
             // If there is no TTL, return message
