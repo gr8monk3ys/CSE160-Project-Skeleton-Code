@@ -5,7 +5,7 @@ configuration LinkStateC{
    provides interface LinkState;
 }
 
-implementation LinkState{
+implementation {
    components LinkStateP;
    LinkState = LinkStateP;
 
