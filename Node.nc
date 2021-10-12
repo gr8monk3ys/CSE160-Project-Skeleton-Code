@@ -17,7 +17,7 @@ module Node{
    uses interface Boot;
 
    uses interface SplitControl as AMControl;
-   
+
    uses interface Receive;
 
    uses interface SimpleSend as Sender;
@@ -44,11 +44,11 @@ implementation{
    uint16_t seq = 1;
 
    // Prototypes
-   void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
+   void makePack(pack* Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t* payload, uint8_t length);
    uint32_t randNum(uint32_t min, uint32_t max);
 
    // Gets called for initial processes
-   event void Boot.booted(){
+   event void Boot.booted() {
       call AMControl.start();
       call NeighborTimer.startOneShot(30000);
       call LinkStateTimer.startOneShot(30000);
@@ -56,25 +56,26 @@ implementation{
    }
 
    // Begins simulated radio call while booting
-   event void AMControl.startDone(error_t err){
-      if(err == SUCCESS){
+   event void AMControl.startDone(error_t err) {
+      if (err == SUCCESS) {
          dbg(GENERAL_CHANNEL, "Radio On\n");
-      }else{
+      }
+else {
          //Retry until successful
          call AMControl.start();
       }
    }
 
-   event void AMControl.stopDone(error_t err){}
+   event void AMControl.stopDone(error_t err) {}
 
    //a function when we recieve packets:
-   event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len){
-      
+   event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+
       dbg(GENERAL_CHANNEL, "Packet Received\n");
 
-      if(len == sizeof(pack)){
-         pack* myMsg = (pack*) payload;
-         
+      if (len == sizeof(pack)) {
+         pack* myMsg = (pack*)payload;
+
          // // Flooding for recieve
          // if(myMsg->TTL > 0){
          //    call Flooding.ping(myMsg);
@@ -85,15 +86,15 @@ implementation{
          // dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg->payload);
          // return msg;
          // }
-            
-         if(myMsg->protocol == PROTOCOL_DV){
+
+         if (myMsg->protocol == PROTOCOL_DV) {
             call LinkState.recieve(myMsg);
          }
-         else if(myMsg->dest == TOS_NODE_ID){
+         else if (myMsg->dest == TOS_NODE_ID) {
 
          }
-         else if (myMsg->dest == AM_BROADCAST_ADDR){
-            call NeighborDiscovery.recieve(myMsg);   
+         else if (myMsg->dest == AM_BROADCAST_ADDR) {
+            call NeighborDiscovery.recieve(myMsg);
          }
          else {
             call LinkState.send(myMsg);
@@ -104,10 +105,10 @@ implementation{
    }
 
    // Called to give a ping command to any called nodes
-   event void CommandHandler.ping(uint16_t destination, uint8_t *payload){
-      
+   event void CommandHandler.ping(uint16_t destination, uint8_t* payload) {
+
       dbg(GENERAL_CHANNEL, "PING EVENT \n");
-      
+
       makePack(&sendPackage, TOS_NODE_ID, destination, 19, PROTOCOL_PING, seq, payload, PACKET_MAX_PAYLOAD_SIZE);
       call Sender.send(sendPackage, destination);
       call LinkState.send(&sendPackage);
@@ -128,38 +129,38 @@ implementation{
       call LinkState.start();
     }
 
-   // Issues a call to all neighboring IDs of a node
-   event void CommandHandler.printNeighbors(){
-      //TO ACTUALLY START THE FINDING METHOD, AND THE MAKE PACK FUNCTION
-     call NeighborDiscovery.printNeighbors();
-   }
-
-   //to print the table 
-   event void CommandHandler.printRouteTable(){}
-
-   event void CommandHandler.printLinkState(){}
-
-   event void CommandHandler.printDistanceVector(){}
-
-   event void CommandHandler.setTestServer(){}
-
-   event void CommandHandler.setTestClient(){}
-
-   event void CommandHandler.setAppServer(){}
-
-   event void CommandHandler.setAppClient(){}
-
-   // Puts together packets 
-   void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, uint8_t* payload, uint8_t length){
-      Package->src = src;
-      Package->dest = dest;
-      Package->TTL = TTL;
-      Package->seq = seq;
-      Package->protocol = protocol;
-      memcpy(Package->payload, payload, length);
-   }
-
-   uint32_t randNum(uint32_t min, uint32_t max) {
-        return ( call Random.rand16() % (max-min+1) ) + min;
+    // Issues a call to all neighboring IDs of a node
+    event void CommandHandler.printNeighbors() {
+       //TO ACTUALLY START THE FINDING METHOD, AND THE MAKE PACK FUNCTION
+      call NeighborDiscovery.printNeighbors();
     }
+
+    //to print the table 
+    event void CommandHandler.printRouteTable() {}
+
+    event void CommandHandler.printLinkState() {}
+
+    event void CommandHandler.printDistanceVector() {}
+
+    event void CommandHandler.setTestServer() {}
+
+    event void CommandHandler.setTestClient() {}
+
+    event void CommandHandler.setAppServer() {}
+
+    event void CommandHandler.setAppClient() {}
+
+    // Puts together packets 
+    void makePack(pack* Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, uint8_t* payload, uint8_t length) {
+       Package->src = src;
+       Package->dest = dest;
+       Package->TTL = TTL;
+       Package->seq = seq;
+       Package->protocol = protocol;
+       memcpy(Package->payload, payload, length);
+    }
+
+    uint32_t randNum(uint32_t min, uint32_t max) {
+         return (call Random.rand16() % (max - min + 1)) + min;
+     }
 }

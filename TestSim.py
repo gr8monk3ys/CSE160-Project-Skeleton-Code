@@ -165,9 +165,6 @@ def main():
     s.moteOff(3);
     s.runTime(100);
 
-    s.routeDMP(2);
-    s.runTime(5);
-
     s.routeDMP(9);
     s.runTime(5);
 

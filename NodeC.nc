@@ -13,36 +13,36 @@
 
 configuration NodeC{
 }
-implementation {
+implementation{
     components MainC;
     components Node;
     components new AMReceiverC(AM_PACK) as GeneralReceive;
 
-    Node -> MainC.Boot;
+    Node->MainC.Boot;
 
-    Node.Receive -> GeneralReceive;
+    Node.Receive->GeneralReceive;
 
     components ActiveMessageC;
-    Node.AMControl -> ActiveMessageC;
+    Node.AMControl->ActiveMessageC;
 
     components RandomC;
-    Node.Random -> RandomC;
+    Node.Random->RandomC;
 
     components new SimpleSendC(AM_PACK);
-    Node.Sender -> SimpleSendC;
+    Node.Sender->SimpleSendC;
 
     components CommandHandlerC;
-    Node.CommandHandler -> CommandHandlerC;
+    Node.CommandHandler->CommandHandlerC;
 
     components FloodingC;
-    Node.Flooding -> FloodingC;
+    Node.Flooding->FloodingC;
 
     components NeighborDiscoveryC;
-    Node.NeighborDiscovery -> NeighborDiscoveryC;
+    Node.NeighborDiscovery->NeighborDiscoveryC;
 
     components new TimerMilliC() as NeighborTimer;
-    Node.NeighborTimer -> NeighborTimer;
+    Node.NeighborTimer->NeighborTimer;
 
     components LinkStateC;
-    Node.LinkState -> LinkStateC;
+    Node.LinkState->LinkStateC;
 }

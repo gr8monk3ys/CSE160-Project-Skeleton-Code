@@ -1,19 +1,19 @@
 #include "../../includes/packet.h"
 
-configuration FloodingC {
-   provides interface Flooding; 
+configuration FloodingC{
+   provides interface Flooding;
 }
 
 //The wiring of configuration and Module 
-implementation {
+implementation{
    components FloodingP;
    Flooding = FloodingP;
 
-//List of packets... 
-   components new ListC(pack, 64);
-   FloodingP.PreviousPackets -> ListC;  
+   //List of packets... 
+      components new ListC(pack, 64);
+      FloodingP.PreviousPackets->ListC;
 
-//Sending Packets...
-   components new SimpleSendC(AM_PACK);
-   FloodingP.Sender -> SimpleSendC;
+      //Sending Packets...
+         components new SimpleSendC(AM_PACK);
+         FloodingP.Sender->SimpleSendC;
 }

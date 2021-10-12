@@ -1,21 +1,23 @@
 #include <Timer.h>
 #include "../../includes/route.h"
 
-configuration LinkStateC {
-   provides interface LinkState; 
+configuration LinkStateC{
+   provides interface LinkState;
 }
 
-//The wiring of configuration and Module 
-implementation LinkState {
+implementation LinkState{
    components LinkStateP;
    LinkState = LinkStateP;
 
+   components  RandomC;
+   LinkStateP.Random->RandomC;
+
    components new ListC(Route, 256);
-   LinkStateP.RoutingTable -> ListC;  
+   LinkStateP.RoutingTable->ListC;
 
    components new SimpleSendC(AM_PACK);
-   LinkStateP.Sender -> SimpleSendC;
+   LinkStateP.Sender->SimpleSendC;
 
    components new TimerMilliC() as RegularTimer;
-   LinkStateP.RegularTimer -> RegularTimer;
+   LinkStateP.RegularTimer->RegularTimer;
 }
