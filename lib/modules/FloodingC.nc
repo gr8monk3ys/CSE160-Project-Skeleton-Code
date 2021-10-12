@@ -9,9 +9,9 @@ implementation{
    components FloodingP;
    Flooding = FloodingP;
 
-   //List of packets... 
+   //List of packets... named cache
       components new ListC(pack, 64);
-      FloodingP.PreviousPackets->ListC;
+      FloodingP.cache->ListC;
 
       //Sending Packets...
          components new SimpleSendC(AM_PACK);

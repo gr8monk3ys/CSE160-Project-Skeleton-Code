@@ -3,7 +3,7 @@
 
 module FloodingP{
    provides interface Flooding; // using same name
-   uses interface List<pack> as PreviousPackets; // Now refered to as Previous Packets 
+   uses interface List<pack> as cache; // Now refered to as cache 
    uses interface SimpleSend as Sender; // Now referred to as Sender 
 }
 
@@ -51,7 +51,10 @@ implementation{
          dbg(FLOODING_CHANNEL, "Source (Recieved): %d. Destination(Sent): %d\n", msg->src, msg->dest);
          sequence = msg->seq;
          call Sender.send(*msg, AM_BROADCAST_ADDR);
+         call cache.pushfront(msg->src);
       }
+
+         dbg(FLOODING_CHANNEL, "Cache %d\n", call cache.popback());
    }
 
    command void Flooding.ping(pack* msg) {
