@@ -121,6 +121,7 @@ else {
         call NeighborDiscovery.find(seq);
     }
 
+   //to run link state routing:
     event void LinkStateTimer.fired() {
       uint32_t* neighbors = call NeighborDiscoveryHandler.getNeighbors();
       uint16_t numNeighbors = call NeighborDiscoveryHandler.numNeighbors();
