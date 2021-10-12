@@ -240,7 +240,7 @@ implementation{
             uint16_t i = 0;
 
             // Iterate over each route in the payload
-            while (i < ) {
+            while (i < routes) {
                 Route current_route;
                 memcpy(&current_route, (&routing_packet->payload) + i * ROUTE_SIZE, ROUTE_SIZE);
 
