@@ -34,6 +34,8 @@ module Node{
    uses interface Timer<TMilli> as NeighborTimer;
    uses interface NeighborDiscovery;
 
+   //timer for Link state:
+   uses interface Timer<TMilli> as LinkStateTimer;
    uses interface LinkState;
 
 }

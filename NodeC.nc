@@ -45,4 +45,9 @@ implementation{
 
     components LinkStateC;
     Node.LinkState->LinkStateC;
+
+    components new TimerMilliC() as LinkStateTimer;
+    Node.LinkState->LinkStateTimer;
+
+    
 }
