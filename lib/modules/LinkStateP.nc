@@ -7,7 +7,7 @@ module LinkStateP
     provides interface LinkState;
     uses interface NeighborDiscovery as nd;
 
-    uses interface List<Route> as RoutingTable;
+    uses interface List<Route> as RouteTable;
     uses interface SimpleSend as Sender;
 
     uses interface Random;
