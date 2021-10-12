@@ -236,13 +236,13 @@ implementation{
          * Called when the node recieves a routing packet
          * Processes the route information from the packet
          */
-        command void LinkState.recieve(pack* routing_packet) {
+        command void LinkState.recieve(pack* route_packet) {
             uint16_t i = 0;
 
             // Iterate over each route in the payload
             while (i < routes) {
                 Route current_route;
-                memcpy(&current_route, (&routing_packet->payload) + i * ROUTE_SIZE, ROUTE_SIZE);
+                memcpy(&current_route, (&route_packet->payload) + i * ROUTE_SIZE, ROUTE_SIZE);
 
                 // Blank route
                 if (current_route.dest == 0) {
@@ -276,8 +276,8 @@ implementation{
                         continue;
                     }
 
-                    current_route.dest = routing_packet->dest;
-                    current_route.next_hop = routing_packet->src;
+                    current_route.dest = route_packet->dest;
+                    current_route.next_hop = route_packet->src;
                     current_route.TTL = ROUTE_TIMEOUT;
                     current_route.route_changed = TRUE;
 
@@ -292,16 +292,16 @@ implementation{
                     Route existing_route = getRoute(current_route.dest);
 
                     // Update to existing route, reset TTL
-                    if (existing_route.next_hop == routing_packet->src) {
+                    if (existing_route.next_hop == route_packet->src) {
                         existing_route.TTL = ROUTE_TIMEOUT;
                     }
 
                     // Updated cost to existing route, or new cheaper cost
-                    if ((existing_route.next_hop == routing_packet->src
+                    if ((existing_route.next_hop == route_packet->src
                         && existing_route.cost != current_route.cost)
                         || existing_route.cost > current_route.cost) {
 
-                        existing_route.next_hop = routing_packet->src;
+                        existing_route.next_hop = route_packet->src;
                         existing_route.TTL = ROUTE_TIMEOUT;
                         existing_route.route_changed = TRUE;
 
@@ -331,7 +331,7 @@ implementation{
          * Updates the neighbor list associated with this routing handler.
          * Updates routes in table for neighbors
          */
-        command void LinkState.updateNeighbors(uint32_t* neighbors, uint16_t numNeighbors) {
+        command void LinkState.updateNeighbors(uint32_t* neighbors, uint16_t neighborSize) {
             uint16_t i;
             uint16_t size = call RoutingTable.size();
 
@@ -349,7 +349,7 @@ implementation{
                 if (route.cost == 1) {
                     bool isNeighbor = FALSE;
 
-                    for (j = 0; j < numNeighbors; j++) {
+                    for (j = 0; j < neighborSize; j++) {
                         if (route.dest == neighbors[j]) {
                             isNeighbor = TRUE;
                             break;
@@ -364,7 +364,7 @@ implementation{
             }
 
             // Add neighbors to routing table
-            for (i = 0; i < numNeighbors; i++) {
+            for (i = 0; i < neighborSize; i++) {
                 Route route;
 
                 route.dest = neighbors[i];
