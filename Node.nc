@@ -27,12 +27,14 @@ module Node{
    //used to handle commands:
    uses interface CommandHandler;
 
+   //used for flooding:
+   uses interface Flooding;
+
    //used for neighbor discovery:
    uses interface Timer<TMilli> as NeighborTimer;
    uses interface NeighborDiscovery;
 
-   //used for flooding:
-   uses interface Flooding;
+   uses interface LinkState;
 
 }
 
@@ -44,10 +46,12 @@ implementation{
    // Prototypes
    void makePack(pack *Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t *payload, uint8_t length);
    uint32_t randNum(uint32_t min, uint32_t max);
+
    // Gets called for initial processes
    event void Boot.booted(){
       call AMControl.start();
       call NeighborTimer.startOneShot(30000);
+      call LinkStateTimer.startOneShot(30000);
       dbg(GENERAL_CHANNEL, "Booted\n");
    }
 
@@ -71,21 +75,28 @@ implementation{
       if(len == sizeof(pack)){
          pack* myMsg = (pack*) payload;
          
-         // Flooding for recieve
-         if(myMsg -> TTL > 0){
-            call Flooding.ping(myMsg);
-         
-            // If there is no TTL, return message
-            if(myMsg -> TTL == 0){
-               return msg;
-            }
-         dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg -> payload);
-         return msg;
-         }
+         // // Flooding for recieve
+         // if(myMsg->TTL > 0){
+         //    call Flooding.ping(myMsg);
+         //    // If there is no TTL, return message
+         //    if(myMsg->TTL == 0){
+         //       return msg;
+         //       }
+         // dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg->payload);
+         // return msg;
+         // }
             
-         //Neighbor discovery for recieve
-         if (myMsg -> dest == AM_BROADCAST_ADDR){
+         if(myMsg->protocol == PROTOCOL_DV){
+            call LinkState.recieve(myMsg);
+         }
+         else if(myMsg->dest == TOS_NODE_ID){
+
+         }
+         else if (myMsg->dest == AM_BROADCAST_ADDR){
             call NeighborDiscovery.recieve(myMsg);   
+         }
+         else {
+            call LinkState.send(myMsg);
          }
       }
       dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
@@ -99,6 +110,7 @@ implementation{
       
       makePack(&sendPackage, TOS_NODE_ID, destination, 19, PROTOCOL_PING, seq, payload, PACKET_MAX_PAYLOAD_SIZE);
       call Sender.send(sendPackage, destination);
+      call LinkState.send(&sendPackage);
    }
 
    ///////////////////////////////
@@ -106,6 +118,14 @@ implementation{
    //To run neighbor discovery:
     event void NeighborTimer.fired() {
         call NeighborDiscovery.find(seq);
+    }
+
+    event void LinkStateTimer.fired() {
+      uint32_t* neighbors = call NeighborDiscoveryHandler.getNeighbors();
+      uint16_t numNeighbors = call NeighborDiscoveryHandler.numNeighbors();
+
+      call LinkState.updateNeighbors(neighbors, numNeighbors);
+      call LinkState.start();
     }
 
    // Issues a call to all neighboring IDs of a node
