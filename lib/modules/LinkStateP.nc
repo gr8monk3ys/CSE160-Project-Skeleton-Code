@@ -23,10 +23,6 @@ implementation
     uint8_t RouteTable[PACKET_MAX_PAYLOAD_SIZE * 8][PACKET_MAX_PAYLOAD_SIZE * 8];
     uint16_t routeNumNodes;
 
-    //getting the neighbors within the table:
-    //we need to check if the packet was already placed in the table:
-    //the LSA Cache should be placed here (in a series of conditional loops:)
-
     //recieving a link state packet:
     command void LinkState.recieve(pack * route_packet)
      void LinkState.recieve(pack * route_packet)
@@ -35,11 +31,11 @@ implementation
         uint16_t i = 0;
     }
 
- te of the table
+    // Gets the route dependent on the given destination
     Route getRoute(uint16_t dest){
         Route return_route;
         uint16_t route_size = call RouteTable.size();
-        uint16_t i;
+        uint16_t i = 0;
 
         while(i < size; i++){
             Route route = call RoutingTable.get(i)
@@ -50,12 +46,27 @@ implementation
             i++;
         }
         return return_route;
-    } duplicate
+    }
 
-    // Removes the route if it is a
+    // Updates the route if the current route is the route provided
+    void updateRoute(Route route) {
+        uint16_t size = call RoutingTable.size();
+        uint16_t i = 0;
+
+        while(i < size){
+            Route current = call RoutingTableTable.get(i);
+            if(route.dest == current.dest){
+                call RoutingTable.set(i, route)
+                return;
+            }
+            i++;
+        }
+    }
+
+    // Removes the route if it is a duplicate
     void deleteRoute(uint16_t dest){
         uint16_t size = call RoutingTable.size();
-        uint16_t i;
+        uint16_t i = 0;
 
         while(i < size){
             Route route = call RoutingTable.get(i);
@@ -63,28 +74,26 @@ implementation
                 call RoutingTable.remove(i);
                 return;
             }
+            i++;
         }
     }
 
+    void invalidateRoute(Route route){
+        if(route.cost == 1) {
 
-
-    command void LinkState.updateNeighbors(neighbors, numNeighbors)
-    {
-
-        //Add neighbors to routing table for (i = 0; i < neighborSize; i++)
-        {
-            //the iterator for Route:
-            Route route;
-
-    ute route;
-
-            //neighbors is the hash map cointating the neighbor nodes:
-            route.dest = neighbors[i];
-            route.cost = 1;
-            route.next_hop = neighbors[i]; //hop refers to pass
-            route.TTL = -= 1;              //decrementing
         }
     }
+
+    // command void LinkState.updateNeighbors(neighbors, numNeighbors){
+    //         Route route;
+
+    //         //neighbors is the hash map cointating the neighbor nodes:
+    //         route.dest = neighbors[i];
+    //         route.cost = 1;
+    //         route.next_hop = neighbors[i]; //hop refers to pass
+    //         route.TTL = -= 1;              //decrementing
+    //     }
+    // }
 
     command void LinkState.printRoutingTable()
     {
@@ -102,8 +111,7 @@ implementation
     }
 
     //we want to send off packets to nodes:
-    command void LinkState.send(pack * msg)
-    {
+    command void LinkState.send(pack * msg){
         Route route;
         
         if(route.cost == ROUTE_MAX_COST) {
@@ -114,11 +122,34 @@ implementation
         }
         dbg(GENERAL_CHANNEL, "src: %d, dest: %d, seq: %d, cost: %d, next hop: %d", msg->src, msg->dest, msg->seq, route.cost, route.next_hop)
         call Sender.send(*msg, route.next_hop);
-
-        void LinkState.start();
     }
 
-    command void LinkState.recieve(pack * route_packet)
-    {
+    command void LinkState.updateNeighbors(uint16_t* neighbors, uint16_t numNeighbors){
+        uint16_t i = 0;
+        uint16_t size = call RoutingTable.size();
+
+        while(i < size){
+
+            i++;
+        }
+    }
+
+    command void LinkState.recieve(pack * routing){
+        uint16_t i = 0;
+
+        while(i < routes){
+            Route current;
+            memcpy(&current, (&routing->payload) + (i * ROUTE_SIZE), ROUTE_SIZE);
+            current.dest == 0 ? continue;
+            current.dest == TOS_NODE_ID ? continue;
+            current.next_hop == TOS_NODE_ID ? current.cost = ROUTE_MAX_COST;
+            !inTable
+            if(current.cost > ROUTE_MAX_COST) {
+                dbg(GENERAL_CHANNEL, "Not a valid route cost %d from %d \n", current.cost, current.dest);
+                continue;
+            }
+            i++;
+        }
+        
     }
 }
