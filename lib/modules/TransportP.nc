@@ -21,7 +21,7 @@ module TransportP{
 }
 
 implementation{
-   pack sendPack;
+   pack sendPackage;
    TCP_t sendPayload;
    uint16_t seqNum = 0;
    uint8_t data[TCP_MAX_DATA_SIZE];
@@ -59,7 +59,7 @@ implementation{
            preventRun++;
        }
        row = call RouterTable.get(nextDest);
-       row.distance == 1 ? call Sender.send(sendPack, findDest) : call Sender.send(sendPack, row.nextNode)
+       row.distance == 1 ? call Sender.send(sendPackage, findDest) : call Sender.send(sendPackage, row.nextNode)
 }
 
 TCP_t assignSocketID() {
@@ -92,7 +92,7 @@ command error_t Transport.connect(TCP_t fd, socket_addr_t* addr) {
                      sendPayload.data,
                      TCP_MAX_DATA_SIZE);
 
-         makePack(&sendPack,
+         makePack(&sendPackage,
                   temp_socket->sockAddr.srcAddr,
                   temp_socket->sockAddr.destAddr,
                   MAX_TTL,
@@ -101,7 +101,7 @@ command error_t Transport.connect(TCP_t fd, socket_addr_t* addr) {
                   &sendPayload,
                   PACKET_MAX_PAYLOAD_SIZE);
 
-         sendWithTimerPing(&sendPack);
+         sendWithTimerPing(&sendPackage);
 
          temp_socket->state = SOCK_SYN_SENT;
          return SUCCESS;
