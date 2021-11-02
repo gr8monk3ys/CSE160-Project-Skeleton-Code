@@ -162,7 +162,7 @@ implementation
     //     }
     // }
 
-    command void LinkState.printRoutingTable()
+    command void LinkState.printRouteTable()
     {
         uint16_t size = call RouteTable.size();
         uint16_t i;
@@ -185,14 +185,14 @@ implementation
 
         if (route.cost == ROUTE_MAX_COST)
         {
-            dbg(GERNERAL_CHANNEL, "Infinite cost loop, cant send packet", msg->src, msg->dest);
+            dbg(GENERAL_CHANNEL, "Infinite cost loop, cant send packet", msg->src, msg->dest);
             return;
         }
-        else if (!inTable(msg->dest))
+        else if (!call RouteTable.contains(msg->dest))
         {
-            dbg(GENERAL_CHANNEL, "No connection, cant send packet")
+            dbg(GENERAL_CHANNEL, "No connection, cant send packet");
         }
-        dbg(GENERAL_CHANNEL, "src: %d, dest: %d, seq: %d, cost: %d, next hop: %d", msg->src, msg->dest, msg->seq, route.cost, route.next_hop)
+        dbg(GENERAL_CHANNEL, "src: %d, dest: %d, seq: %d, cost: %d, next hop: %d", msg->src, msg->dest, msg->seq, route.cost, route.next_hop);
             call Sender.send(*msg, route.next_hop);
     }
 
@@ -237,7 +237,7 @@ implementation
                 route.cost = 1;
                 route.dest = neighbors[i];
                 route.next_hop = neighbors[i];
-                route.TTL = ROUTE
+                route.TTL = ROUTE;
             }
 
             i++;
@@ -255,7 +255,7 @@ implementation
             current.dest == 0               ? continue;
             current.dest == TOS_NODE_ID     ? continue;
             current.next_hop == TOS_NODE_ID ? current.cost = ROUTE_MAX_COST;
-            !inTable if (current.cost > ROUTE_MAX_COST)
+            !RouteTable if (current.cost > ROUTE_MAX_COST)
             {
                 dbg(GENERAL_CHANNEL, "Not a valid route cost %d from %d \n", current.cost, current.dest);
                 continue;
