@@ -10,6 +10,8 @@
 #include <Timer.h>
 #include "includes/CommandMsg.h"
 #include "includes/packet.h"
+#include "includes/socket.h"
+#include "includes/socket_t.h"
 
 configuration NodeC{
 }
@@ -49,5 +51,7 @@ implementation{
     components new TimerMilliC() as LinkStateTimer;
     Node.LinkState->LinkStateTimer;
 
+    components TransportP;
+    Node.Transport -> TransportP;
     
 }
