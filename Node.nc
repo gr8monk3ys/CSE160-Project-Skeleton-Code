@@ -125,8 +125,8 @@ else {
 
    //to run link state routing:
     event void LinkStateTimer.fired() {
-      uint32_t* neighbors = call NeighborDiscoveryHandler.getNeighbors();
-      uint16_t numNeighbors = call NeighborDiscoveryHandler.numNeighbors();
+      uint32_t* neighbors = call NeighborDiscovery.gatherNeighbors();
+      uint16_t numNeighbors = call NeighborDiscovery.numNeighbors();
 
       call LinkState.updateNeighbors(neighbors, numNeighbors);
       call LinkState.start();
