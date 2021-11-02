@@ -106,7 +106,7 @@ implementation
             route.route_changed = TRUE;
 
             updateRoute(route);
-            triggeredUpdate();
+            //triggeredUpdate(); //we dont have a function for this
 
             // Invalidate routes that had a next hop with that node
             for (i = 0; i < size; i++)
@@ -120,13 +120,13 @@ implementation
                     current_route.route_changed = TRUE;
 
                     updateRoute(current_route);
-                    triggeredUpdate();
+                   // triggeredUpdate();
                 }
             }
         }
         else if (route.TTL == 0 && route.cost == ROUTE_MAX_COST)
         {
-            removeRoute(route.dest);
+            call RouteTable.remove(route.dest);
         }
     }
 
@@ -138,7 +138,7 @@ implementation
         while (i < call RouteTable.size())
         {
             Route route = call RouteTable.get(i);
-            decrementTimer(route)
+            decrementTimer(route);
                 i++;
         }
     }
@@ -149,20 +149,7 @@ implementation
         decrementTimer(route);
     }
 
-    command void LinkState.start()
-    {
-        if (call RouteTable.size() == 0)
-        {
-            dbg(ROUTING_CHANNEL, "ERROR - Can't route with no neighbors! Make sure to updateNeighbors first.\n");
-            return;
-        }
-
-        if (!call RegularTimer.isRunning())
-        {
-            dbg(ROUTING_CHANNEL, "Intiating routing protocol...\n");
-            call RegularTimer.startPeriodic(randNum(25000, 35000));
-        }
-    }
+    
 
     // command void LinkState.updateNeighbors(neighbors, numNeighbors){
     //         Route route;
@@ -175,7 +162,7 @@ implementation
     //     }
     // }
 
-    command void LinkState.printRouteTable()
+    command void LinkState.printRoutingTable()
     {
         uint16_t size = call RouteTable.size();
         uint16_t i;
@@ -334,5 +321,20 @@ implementation
         }
 
         signal TriggeredEventTimer.fired();
+    }
+
+    command void LinkState.start()
+    {
+        if (call RouteTable.size() == 0)
+        {
+            dbg(ROUTING_CHANNEL, "ERROR - Can't route with no neighbors! Make sure to updateNeighbors first.\n");
+            return;
+        }
+
+        if (!call RegularTimer.isRunning())
+        {
+            dbg(ROUTING_CHANNEL, "Intiating routing protocol...\n");
+            call RegularTimer.startPeriodic(randNum(25000, 35000));
+        }
     }
 }
