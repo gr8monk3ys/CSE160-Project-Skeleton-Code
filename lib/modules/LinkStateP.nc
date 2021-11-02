@@ -23,13 +23,13 @@ implementation
     uint8_t RouteTable[PACKET_MAX_PAYLOAD_SIZE * 8][PACKET_MAX_PAYLOAD_SIZE * 8];
     uint16_t routeNumNodes;
 
-    //recieving a link state packet:
-    command void LinkState.recieve(pack* route_packet)
-     void LinkState.recieve(pack* route_packet)
+    //     recieving a link state packet:
+    // command void LinkState.recieve(pack* route_packet)
+    //  //void LinkState.recieve(pack* route_packet)
 
-    {
-        uint16_t i = 0;
-    }
+    // {
+    //     uint16_t i = 0;
+    // }
 
     // Gets the route dependent on the given destination
     Route getRoute(uint16_t dest) {
