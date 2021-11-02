@@ -101,12 +101,12 @@ implementation
         uint16_t i;
 
         dbg(GENERAL_CHANNEL, "--- dest\tnext hop\tcost ---\n");
-        i = 0
+        i = 0;
         while(i < size){
             
             Route route = call RouteTable.get(i);
             dbg(GENERAL_CHANNEL, "--- %d\t\t%d\t\t\t%d\n", route.dest, route.next_hop, route.cost);
-            i++
+            i++;
         }
     }
 
@@ -129,6 +129,27 @@ implementation
         uint16_t size = call RoutingTable.size();
 
         while(i < size){
+            Route route = call LinkState.get(i);
+            uint16_t j;
+
+            if(route.cost == ROUTE_MAX_COST) {
+                continue;
+            }
+
+            if(route.cost == 1){
+                bool isNeighbor = FALSE;
+                j = 0;
+                while(j < numNeighbors){
+                    if(route.dest == neighbors[j]) {
+                        isNeighbor = True;
+                        break;
+                    }
+                    j++;
+                }
+                if(!isNeighbor) {
+                    invalidateRoute(route);
+                }
+            }
 
             i++;
         }
