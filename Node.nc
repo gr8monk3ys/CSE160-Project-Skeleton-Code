@@ -12,6 +12,7 @@
 #include "includes/CommandMsg.h"
 #include "includes/sendInfo.h"
 #include "includes/channels.h"
+#include "includes/TCP_t.h"
 
 module Node{
    uses interface Boot;
@@ -36,8 +37,12 @@ module Node{
 
    //timer for Link state:
    uses interface Timer<TMilli> as LinkStateTimer;
+
    uses interface LinkState;
 
+   uses interface List<socket_addr_t> as Connections;
+
+   uses interface Transport;
 }
 
 implementation{
@@ -70,7 +75,7 @@ else {
 
    event void AMControl.stopDone(error_t err) {}
 
-   //a function when we recieve packets:
+   //A function when we recieve packets:
    event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
 
       dbg(GENERAL_CHANNEL, "Packet Received\n");
@@ -78,33 +83,58 @@ else {
       if (len == sizeof(pack)) {
          pack* myMsg = (pack*)payload;
 
-         // // Flooding for recieve
-         // if(myMsg->TTL > 0){
-         //    call Flooding.ping(myMsg);
-         //    // If there is no TTL, return message
-         //    if(myMsg->TTL == 0){
-         //       return msg;
-         //       }
-         // dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg->payload);
-         // return msg;
-         // }
+      if (myMsg->protocol == PROTOCOL_TCP) {
+        if (myMsg->dest == TOS_NODE_ID) {
+           dbg(NEIGHBOR_CHANNEL, "Packet recieved from: %i\n", myMsg->src);
+           //   call Transport.receive(myMsg);
+             return msg;
+         }
 
-         if (myMsg->protocol == PROTOCOL_DV) {
-            call LinkState.recieve(myMsg);
-         }
-         else if (myMsg->dest == TOS_NODE_ID) {
+         myMsg->TTL = myMsg->TTL - 1;
 
+         if (myMsg->TTL > 0) {
+             makePack(&sendPackage,
+                       TOS_NODE_ID,
+                       myMsg->dest,
+                       myMsg->TTL,
+                       0,
+                       myMsg->seq,
+                       myMsg->payload,
+                       PACKET_MAX_PAYLOAD_SIZE);
+
+             return msg;
          }
-         else if (myMsg->dest == AM_BROADCAST_ADDR) {
-            call NeighborDiscovery.recieve(myMsg);
-         }
-         else {
-            call LinkState.send(myMsg);
-         }
+         dbg(NEIGHBOR_CHANNEL, "TCP Timed out");
+         return msg;
+       }
+
+      // // Flooding for recieve
+      // if(myMsg->TTL > 0){
+      //    call Flooding.ping(myMsg);
+      //    // If there is no TTL, return message
+      //    if(myMsg->TTL == 0){
+      //       return msg;
+      //       }
+      // dbg(GENERAL_CHANNEL, "Package Payload: %s\n", myMsg->payload);
+      // return msg;
+      // }
+
+      if (myMsg->protocol == PROTOCOL_DV) {
+         call LinkState.recieve(myMsg);
       }
-      dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
-      return msg;
+      else if (myMsg->dest == TOS_NODE_ID) {
+
+      }
+      else if (myMsg->dest == AM_BROADCAST_ADDR) {
+         call NeighborDiscovery.recieve(myMsg);
+      }
+      else {
+         call LinkState.send(myMsg);
+      }
    }
+   dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
+   return msg;
+}
 
    // Called to give a ping command to any called nodes
    event void CommandHandler.ping(uint16_t destination, uint8_t* payload) {
@@ -123,47 +153,47 @@ else {
         call NeighborDiscovery.find(seq);
     }
 
-   //to run link state routing:
-    event void LinkStateTimer.fired() {
-      uint32_t* neighbors = call NeighborDiscovery.gatherNeighbors();
-      uint16_t numNeighbors = call NeighborDiscovery.numNeighbors();
+    //to run link state routing:
+     event void LinkStateTimer.fired() {
+       uint32_t* neighbors = call NeighborDiscovery.gatherNeighbors();
+       uint16_t numNeighbors = call NeighborDiscovery.numNeighbors();
 
-      call LinkState.updateNeighbors(neighbors, numNeighbors);
-      call LinkState.start();
-    }
-
-    // Issues a call to all neighboring IDs of a node
-    event void CommandHandler.printNeighbors() {
-       //TO ACTUALLY START THE FINDING METHOD, AND THE MAKE PACK FUNCTION
-      call NeighborDiscovery.printNeighbors();
-    }
-
-    //to print the table 
-    event void CommandHandler.printRouteTable() {}
-
-    event void CommandHandler.printLinkState() {}
-
-    event void CommandHandler.printDistanceVector() {}
-
-    event void CommandHandler.setTestServer() {}
-
-    event void CommandHandler.setTestClient() {}
-
-    event void CommandHandler.setAppServer() {}
-
-    event void CommandHandler.setAppClient() {}
-
-    // Puts together packets 
-    void makePack(pack* Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, uint8_t* payload, uint8_t length) {
-       Package->src = src;
-       Package->dest = dest;
-       Package->TTL = TTL;
-       Package->seq = seq;
-       Package->protocol = protocol;
-       memcpy(Package->payload, payload, length);
-    }
-
-    uint32_t randNum(uint32_t min, uint32_t max) {
-         return (call Random.rand16() % (max - min + 1)) + min;
+       call LinkState.updateNeighbors(neighbors, numNeighbors);
+       call LinkState.start();
      }
+
+     // Issues a call to all neighboring IDs of a node
+     event void CommandHandler.printNeighbors() {
+        //TO ACTUALLY START THE FINDING METHOD, AND THE MAKE PACK FUNCTION
+       call NeighborDiscovery.printNeighbors();
+     }
+
+     //to print the table 
+     event void CommandHandler.printRouteTable() {}
+
+     event void CommandHandler.printLinkState() {}
+
+     event void CommandHandler.printDistanceVector() {}
+
+     event void CommandHandler.setTestServer() {}
+
+     event void CommandHandler.setTestClient() {}
+
+     event void CommandHandler.setAppServer() {}
+
+     event void CommandHandler.setAppClient() {}
+
+     // Puts together packets 
+     void makePack(pack* Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, uint8_t* payload, uint8_t length) {
+        Package->src = src;
+        Package->dest = dest;
+        Package->TTL = TTL;
+        Package->seq = seq;
+        Package->protocol = protocol;
+        memcpy(Package->payload, payload, length);
+     }
+
+     uint32_t randNum(uint32_t min, uint32_t max) {
+          return (call Random.rand16() % (max - min + 1)) + min;
+      }
 }
