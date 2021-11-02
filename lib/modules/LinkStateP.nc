@@ -7,7 +7,7 @@ module LinkStateP
     provides interface LinkState;
     uses interface NeighborDiscovery as nd;
 
-    uses interface List<Route> as RouteTable;
+    uses interface Hashmap<Route> as RouteTable;
     uses interface SimpleSend as Sender;
 
     uses interface Random;
@@ -20,7 +20,7 @@ implementation
     uint16_t routes = 1; //route weight
 
     //our routing table to be used:
-    uint8_t RouteTable[PACKET_MAX_PAYLOAD_SIZE * 8][PACKET_MAX_PAYLOAD_SIZE * 8];
+    uint8_t routeTable[PACKET_MAX_PAYLOAD_SIZE * 8][PACKET_MAX_PAYLOAD_SIZE * 8]; //need to figure out where this will be placed
     uint16_t routeNumNodes;
 
     //     recieving a link state packet:
@@ -38,9 +38,11 @@ implementation
         uint16_t route_size = call RouteTable.size();
         uint16_t i = 0;
 
-        while (i < size; i++)
+        while (i < route_size)
         {
-            Route route = call RouteTable.get(i) if (route.dest == dest)
+            Route route = call RouteTable.get(i);
+
+            if (route.dest == dest)
             {
                 return_route = route;
                 break;
@@ -58,10 +60,13 @@ implementation
 
         while (i < size)
         {
-            Route current = call RouteTableTable.get(i);
+            Route current = call RouteTable.get(i);
             if (route.dest == current.dest)
             {
-                call RouteTable.set(i, route) return;
+                call RouteTable.insert(i, route); //set doesnt exist in the functions for Lists
+            
+
+                return;
             }
             i++;
         }
