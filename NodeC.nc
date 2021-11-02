@@ -11,7 +11,7 @@
 #include "includes/CommandMsg.h"
 #include "includes/packet.h"
 #include "includes/socket.h"
-#include "includes/socket_t.h"
+#include "includes/TCP_t.h"
 
 configuration NodeC{
 }
