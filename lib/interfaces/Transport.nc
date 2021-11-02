@@ -1,5 +1,6 @@
 #include "../../packet.h"
 #include "../../includes/socket.h"
+#include "../../includes/socket_t.h"
 
 /**
  * The Transport interface handles sockets and is a layer of abstraction
