@@ -16,10 +16,10 @@ implementation{
       bool isDuplicate(uint16_t src, uint16_t seq) {
       i = 0;
       // we are iterating through the size of the packet list.... essentially moving through our packets 
-      while (i < call PreviousPackets.size()) {
+      while (i < call cache.size()) {
 
          // a variable able to represent a packet will equal a packet within the list == the previous packet
-         pack previous = call PreviousPackets.get(i);
+         pack previous = call cache.get(i);
 
          //dbg(FLOODING_CHANNEL, "Previous packets size: %d\n", previous);
 
