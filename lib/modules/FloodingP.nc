@@ -11,6 +11,7 @@ implementation{
 
    // Global variables
    uint8_t sequence = 0;
+   uint8_t newSource = 0;
    uint16_t i = 0; // some arbitrary int i (unsigned int)
 
       bool isDuplicate(uint16_t src, uint16_t seq) {
@@ -50,8 +51,9 @@ implementation{
          // displaying a message along the Flooding Channel that will display the source node and destination node:
          dbg(FLOODING_CHANNEL, "Source (Recieved): %d. Destination(Sent): %d\n", msg->src, msg->dest);
          sequence = msg->seq;
+         newSource = msg->src;
          call Sender.send(*msg, AM_BROADCAST_ADDR);
-         call cache.pushfront(msg->src);
+         call cache.popfront(); //Check this back out... because I got rid of pushfront()..
       }
 
          dbg(FLOODING_CHANNEL, "Cache %d\n", call cache.popback());
