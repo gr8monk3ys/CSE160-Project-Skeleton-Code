@@ -203,7 +203,7 @@ implementation
 
         while (i < size)
         {
-            Route route = call LinkState.get(i);
+            Route route = call RouteTable.get(i);
             uint16_t j;
 
             if (route.cost == ROUTE_MAX_COST)
@@ -219,7 +219,7 @@ implementation
                 {
                     if (route.dest == neighbors[j])
                     {
-                        isNeighbor = True;
+                        isNeighbor = TRUE;
                         break;
                     }
                     j++;
