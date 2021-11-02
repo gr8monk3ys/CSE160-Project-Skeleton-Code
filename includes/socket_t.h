@@ -15,9 +15,9 @@ typedef struct socket_t {
     uint16_t srcPort;
     uint16_t destPort;
     uint16_t seq;
-    nx_uint8_t flag;
-    nx_uint8_t window;
-    nx_uint8_t data[TCP_MAX_DATA_SIZE];
+    uint8_t flag;
+    uint8_t window;
+    uint8_t data[TCP_MAX_DATA_SIZE];
 } TCP_packet_t;
 
 #endif
