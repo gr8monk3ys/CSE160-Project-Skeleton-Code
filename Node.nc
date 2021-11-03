@@ -12,7 +12,7 @@
 #include "includes/CommandMsg.h"
 #include "includes/sendInfo.h"
 #include "includes/channels.h"
-#include "includes/TCP_t.h"
+// #include "includes/TCP_t.h"
 
 module Node{
    uses interface Boot;
@@ -40,9 +40,9 @@ module Node{
 
    uses interface LinkState;
 
-   uses interface List<socket_addr_t> as Connections;
+   // uses interface List<socket_addr_t> as Connections;
 
-   uses interface Transport;
+   // uses interface Transport;
 }
 
 implementation{
@@ -102,30 +102,30 @@ else {
       if (len == sizeof(pack)) {
          pack* myMsg = (pack*)payload;
 
-      if (myMsg->protocol == PROTOCOL_TCP) {
-        if (myMsg->dest == TOS_NODE_ID) {
-           dbg(NEIGHBOR_CHANNEL, "Packet recieved from: %i\n", myMsg->src);
-           //   call Transport.receive(myMsg);
-             return msg;
-         }
+      // if (myMsg->protocol == PROTOCOL_TCP) {
+      //   if (myMsg->dest == TOS_NODE_ID) {
+      //      dbg(NEIGHBOR_CHANNEL, "Packet recieved from: %i\n", myMsg->src);
+      //      //   call Transport.receive(myMsg);
+      //        return msg;
+      //    }
 
-         myMsg->TTL = myMsg->TTL - 1;
+      //    myMsg->TTL = myMsg->TTL - 1;
 
-         if (myMsg->TTL > 0) {
-             makePack(&sendPackage,
-                       TOS_NODE_ID,
-                       myMsg->dest,
-                       myMsg->TTL,
-                       0,
-                       myMsg->seq,
-                       myMsg->payload,
-                       PACKET_MAX_PAYLOAD_SIZE);
+      //    if (myMsg->TTL > 0) {
+      //        makePack(&sendPackage,
+      //                  TOS_NODE_ID,
+      //                  myMsg->dest,
+      //                  myMsg->TTL,
+      //                  0,
+      //                  myMsg->seq,
+      //                  myMsg->payload,
+      //                  PACKET_MAX_PAYLOAD_SIZE);
 
-             return msg;
-         }
-         dbg(NEIGHBOR_CHANNEL, "TCP Timed out");
-         return msg;
-       }
+      //        return msg;
+      //    }
+      //    dbg(NEIGHBOR_CHANNEL, "TCP Timed out");
+      //    return msg;
+      //  }
 
       // // Flooding for recieve
       // if(myMsg->TTL > 0){
@@ -180,12 +180,6 @@ else {
        call LinkState.updateNeighbors(neighbors, numNeighbors);
        call LinkState.start();
      }
-
-     event void CommandHandler.ping(uint16_t destination, uint8_t *payload){
-        dbg(GENERAL_CHANNEL, "PING EVENT \n");
-        makePack(&sendPackage, TOS_NODE_ID, destination, MAX_TTL, PROTOCOL_PING, current_seq++, payload, PACKET_MAX_PAYLOAD_SIZE);
-        call LinkState.send(&sendPackage);
-    }
 
      // Issues a call to all neighboring IDs of a node
      event void CommandHandler.printNeighbors() {
