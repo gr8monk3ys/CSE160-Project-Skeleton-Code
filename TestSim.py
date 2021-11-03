@@ -161,7 +161,7 @@ def main():
     s.ping(2, 9, "Test");
     s.runTime(5);
     
-    # Test routing with a suddenly invalidated path
+    # Test routing with invalidated path
     s.moteOff(3);
     s.runTime(100);
 
