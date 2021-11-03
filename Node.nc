@@ -73,6 +73,24 @@ else {
       }
    }
 
+   void pingHandler(pack* msg) {
+      switch(msg->protocol) {
+         case PROTOCOL_PING:
+               dbg(GENERAL_CHANNEL, "--- Ping recieved from: %d\n", msg->src);
+               dbg(GENERAL_CHANNEL, "--- Packet Payload: %s\n", msg->payload);
+               makePack(&sendPackage, msg->dest, msg->src, MAX_TTL, PROTOCOL_PINGREPLY, current_seq++, (uint8_t*)msg->payload, PACKET_MAX_PAYLOAD_SIZE);
+               call LinkState.send(&sendPackage);
+               break;
+                  
+         case PROTOCOL_PINGREPLY:
+               dbg(GENERAL_CHANNEL, "--- Ping reply recieved from %d\n", msg->src);
+               break;
+                  
+         default:
+               dbg(GENERAL_CHANNEL, "Unrecognized ping protocol: %d\n", msg->protocol);
+      }
+   }
+
    event void AMControl.stopDone(error_t err) {}
 
    //A function when we recieve packets:
@@ -162,6 +180,12 @@ else {
        call LinkState.start();
      }
 
+     event void CommandHandler.ping(uint16_t destination, uint8_t *payload){
+        dbg(GENERAL_CHANNEL, "PING EVENT \n");
+        makePack(&sendPackage, TOS_NODE_ID, destination, MAX_TTL, PROTOCOL_PING, current_seq++, payload, PACKET_MAX_PAYLOAD_SIZE);
+        call LinkState.send(&sendPackage);
+    }
+
      // Issues a call to all neighboring IDs of a node
      event void CommandHandler.printNeighbors() {
         //TO ACTUALLY START THE FINDING METHOD, AND THE MAKE PACK FUNCTION
@@ -171,7 +195,9 @@ else {
      //to print the table 
      event void CommandHandler.printRouteTable() {}
 
-     event void CommandHandler.printLinkState() {}
+     event void CommandHandler.printLinkState() {
+        call LinkState.printRoutingTable();
+     }
 
      event void CommandHandler.printDistanceVector() {}
 
