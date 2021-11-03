@@ -1,5 +1,7 @@
 #include <Timer.h>
+
 #include "../../includes/route.h"
+
 #include "../../includes/packet.h"
 
 module LinkStateP {
@@ -11,6 +13,8 @@ module LinkStateP {
 
   uses interface Random;
   uses interface Timer < TMilli > as LinkStateTimer;
+
+  uses interface Timer < TMilli > as RegularTimer;
 }
 
 implementation {
@@ -18,7 +22,6 @@ implementation {
   uint16_t routes = 1; //route weight
 
   //our routing table to be used:
-  uint8_t routeTable[PACKET_MAX_PAYLOAD_SIZE * 8][PACKET_MAX_PAYLOAD_SIZE * 8]; //need to figure out where this will be placed
   uint16_t routeNumNodes;
 
   //     recieving a link state packet:
@@ -50,7 +53,7 @@ implementation {
   }
 
   // Gets the route dependent on the given destination
-  void getRoute(uint16_t dest) {
+  Route getRoute(uint16_t dest) {
     Route return_route;
     uint16_t route_size = call RouteTable.size();
     uint16_t i = 0;
@@ -108,7 +111,17 @@ implementation {
       i++;
     }
   }
-  
+
+  void resetRouteUpdates() {
+    uint16_t size = call RouteTable.size();
+    uint16_t i;
+
+    for (i = 0; i < size; i++) {
+      Route route = call RouteTable.get(i);
+      route.route_changed = FALSE;
+      call RouteTable.insert(i, route);
+    }
+  }
 
   void decrementTimer(Route route) {
     route.TTL = route.TTL - 1;
@@ -199,32 +212,32 @@ implementation {
     call Sender.send( * msg, route.next_hop);
   }
 
-    command void LinkState.recieve(pack * routing) {
+  command void LinkState.recieve(pack * routing) {
     uint16_t i = 0;
 
     while (i < routes) {
       Route current;
       memcpy( & current, ( & routing -> payload) + (i * ROUTE_SIZE), ROUTE_SIZE);
-      if(current.dest == 0){ 
+      if (current.dest == 0) {
         continue;
       }
-      if(current.dest == TOS_NODE_ID){
+      if (current.dest == TOS_NODE_ID) {
         continue;
-      }  
-      if(current.next_hop == TOS_NODE_ID){
+      }
+      if (current.next_hop == TOS_NODE_ID) {
         current.cost = ROUTE_MAX_COST;
       }
-      if(!call RouteTable(current.dest){
-        if (current.cost > ROUTE_MAX_COST) {
+      if (!inTable(current.dest)) {
+        if (current.cost == ROUTE_MAX_COST) {
           dbg(GENERAL_CHANNEL, "Not a valid route cost %d from %d \n", current.cost, current.dest);
           continue;
-        } 
+        }
       }
       i++;
     }
   }
 
-  command void LinkState.updateNeighbors(uint16_t * neighbors, uint16_t numNeighbors) {
+  command void LinkState.updateNeighbors(uint32_t * neighbors, uint16_t numNeighbors) {
     uint16_t i = 0;
     uint16_t size = call RouteTable.size();
 
@@ -232,9 +245,9 @@ implementation {
       Route route = call RouteTable.get(i);
       uint16_t j;
 
-      if(route.cost == ROUTE_MAX_COST){
+      if (route.cost == ROUTE_MAX_COST) {
         continue;
-      }  
+      }
 
       if (route.cost == 1) {
         bool isNeighbor = FALSE;
@@ -246,7 +259,7 @@ implementation {
           }
           j++;
         }
-        if(!isNeighbor){ 
+        if (!isNeighbor) {
           invalidate(route);
         }
       }
@@ -262,20 +275,54 @@ implementation {
 
         if (inTable(route.dest)) {
           Route existing = getRoute(route.dest);
-          if (existing_route.cost != route.cost) {
+          if (existing.cost != route.cost) {
             updateRoute(route);
-            call TriggeredEventTimer.startOneShot(rand(1000, 5000));
+            call LinkStateTimer.startOneShot(rand(1000, 5000));
           }
         } else {
-          call RouteTable.pushback(route);
-          call TriggeredEventTimer.startOneShot(rand(1000, 5000));
+          call RouteTable.remove(route.dest);
+          call LinkStateTimer.startOneShot(rand(1000, 5000));
         }
       }
       i++;
     }
   }
 
+  event void LinkStateTimer.fired() {
+    uint16_t size = call RouteTable.size();
+    uint16_t packet_index = 0;
+    uint16_t current_route;
+    pack msg;
 
+    msg.src = TOS_NODE_ID;
+    msg.TTL = 1;
+    msg.protocol = PROTOCOL_DV;
+    msg.seq = 0; // NOTE: Change if requests are needed
+
+    memset(( & msg.payload), '\0', PACKET_MAX_PAYLOAD_SIZE);
+
+    // Go through all routes looking for changed ones
+    for (current_route = 0; current_route < size; current_route++) {
+      Route route = call RouteTable.get(current_route);
+
+      msg.dest = route.dest;
+
+      if (route.route_changed) {
+
+        memcpy(( & msg.payload) + packet_index * ROUTE_SIZE, & route, ROUTE_SIZE);
+
+        packet_index++;
+        if (packet_index == routes) {
+          packet_index = 0;
+
+          call Sender.send(msg, AM_BROADCAST_ADDR);
+          memset(( & msg.payload), '\0', PACKET_MAX_PAYLOAD_SIZE);
+        }
+      }
+    }
+
+    resetRouteUpdates();
+  }
 
   event void RegularTimer.fired() {
     uint16_t size = call RouteTable.size();
@@ -284,10 +331,6 @@ implementation {
     call LinkStateTimer.stop();
     decrementRouteTimers();
 
-    while (i < size) {
-      Route route = call LinkState.size
-      i++;
-    }
     for (i = 0; i < size; i++) {
       Route route = call RouteTable.get(i);
       route.route_changed = TRUE;
