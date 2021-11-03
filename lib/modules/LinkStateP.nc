@@ -288,7 +288,7 @@ implementation
                 memcpy((&msg.payload) + packet_index * ROUTE_SIZE, &route, ROUTE_SIZE);
 
                 packet_index++;
-                if (packet_index == routesPerPacket)
+                if (packet_index == routes)
                 {
                     packet_index = 0;
 
