@@ -31,6 +31,26 @@ implementation
     //     uint16_t i = 0;
     // }
 
+    uint32_t rand(uint32_t min, uint32_t max) {
+        return (call Random.rand16() % (max-min+1) ) + min;
+    }
+
+    bool inTable(uint16_t dest) {
+        uint16_t size = call RouteTable.size();
+        uint16_t i;
+        bool isInTable = FALSE;
+
+        for (i = 0; i < size; i++) {
+            Route route = call RouteTable.get(i);
+
+            if (route.dest == dest) {
+                isInTable = TRUE;
+                break;
+            }
+        }
+        return isInTable;
+    }
+
     // Gets the route dependent on the given destination
     void getRoute(uint16_t dest)
     {
@@ -69,6 +89,17 @@ implementation
                 return;
             }
             i++;
+        }
+    }
+
+    void reset() {
+        uint16_t size = call RoutingTable.size();
+        uint16_t i;
+
+        for (i = 0; i < size; i++) {
+            Route route = call RoutingTable.get(i);
+            route.route_changed = FALSE;
+            call RoutingTable.set(i, route);
         }
     }
 
@@ -120,7 +151,7 @@ implementation
                     current_route.route_changed = TRUE;
 
                     updateRoute(current_route);
-                   // triggeredUpdate();
+                    call TriggeredEventTimer.startOneShot(rand(1000, 5000));
                 }
             }
         }
@@ -297,7 +328,7 @@ implementation
                 }
             }
         }
-        resetRouteUpdates();
+        reset();
     }
 
     event void RegularTimer.fired()
@@ -334,7 +365,7 @@ implementation
         if (!call RegularTimer.isRunning())
         {
             dbg(ROUTING_CHANNEL, "Intiating routing protocol...\n");
-            call RegularTimer.startPeriodic(randNum(25000, 35000));
+            call RegularTimer.startPeriodic(rand(25000, 35000));
         }
     }
 }
