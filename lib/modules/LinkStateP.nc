@@ -124,7 +124,7 @@ implementation {
       route.route_changed = TRUE;
 
       updateRoute(route);
-      //triggeredUpdate(); //we dont have a function for this
+      //call TriggeredEventTimer.startOneShot( rand(1000, 5000) ); (); //we dont have a function for this
 
       // Invalidate routes that had a next hop with that node
       for (i = 0; i < size; i++) {
@@ -199,6 +199,31 @@ implementation {
     call Sender.send( * msg, route.next_hop);
   }
 
+    command void LinkState.recieve(pack * routing) {
+    uint16_t i = 0;
+
+    while (i < routes) {
+      Route current;
+      memcpy( & current, ( & routing -> payload) + (i * ROUTE_SIZE), ROUTE_SIZE);
+      if(current.dest == 0){ 
+        continue;
+      }
+      if(current.dest == TOS_NODE_ID){
+        continue;
+      }  
+      if(current.next_hop == TOS_NODE_ID){
+        current.cost = ROUTE_MAX_COST;
+      }
+      if(!call RouteTable(current.dest){
+        if (current.cost > ROUTE_MAX_COST) {
+          dbg(GENERAL_CHANNEL, "Not a valid route cost %d from %d \n", current.cost, current.dest);
+          continue;
+        } 
+      }
+      i++;
+    }
+  }
+
   command void LinkState.updateNeighbors(uint16_t * neighbors, uint16_t numNeighbors) {
     uint16_t i = 0;
     uint16_t size = call RouteTable.size();
@@ -207,7 +232,9 @@ implementation {
       Route route = call RouteTable.get(i);
       uint16_t j;
 
-      route.cost == ROUTE_MAX_COST ? continue;
+      if(route.cost == ROUTE_MAX_COST){
+        continue;
+      }  
 
       if (route.cost == 1) {
         bool isNeighbor = FALSE;
@@ -218,52 +245,37 @@ implementation {
             break;
           }
           j++;
-        }!isNeighbor ? invalidateRoute(route);
+        }
+        if(!isNeighbor){ 
+          invalidate(route);
+        }
       }
 
       i = 0;
       while (i < numNeighbors) {
-        Route route;
+        //Route route;
 
         route.cost = 1;
         route.dest = neighbors[i];
         route.next_hop = neighbors[i];
-        route.TTL = ROUTE;
+        route.TTL = 10;
 
         if (inTable(route.dest)) {
           Route existing = getRoute(route.dest);
           if (existing_route.cost != route.cost) {
             updateRoute(route);
-            triggeredUpdate();
+            call TriggeredEventTimer.startOneShot(rand(1000, 5000));
           }
         } else {
           call RouteTable.pushback(route);
-          triggeredUpdate();
+          call TriggeredEventTimer.startOneShot(rand(1000, 5000));
         }
       }
       i++;
     }
   }
 
-  command void LinkState.recieve(pack * routing) {
-    uint16_t i = 0;
 
-    while (i < routes) {
-      Route current;
-      memcpy( & current, ( & routing -> payload) + (i * ROUTE_SIZE), ROUTE_SIZE);
-      current.dest == 0 ?
-        continue;
-      current.dest == TOS_NODE_ID ?
-        continue;
-      current.next_hop == TOS_NODE_ID ? current.cost = ROUTE_MAX_COST;
-      !RouteTable
-      if (current.cost > ROUTE_MAX_COST) {
-        dbg(GENERAL_CHANNEL, "Not a valid route cost %d from %d \n", current.cost, current.dest);
-        continue;
-      }
-      i++;
-    }
-  }
 
   event void RegularTimer.fired() {
     uint16_t size = call RouteTable.size();
