@@ -49,9 +49,9 @@ implementation {
   Node.LinkState -> LinkStateC;
 
   components new TimerMilliC() as LinkStateTimer;
-  Node.LinkState -> LinkStateTimer;
+  Node.LinkStateTimer -> LinkStateTimer;
 
-  components TransportP;
-  Node.Transport -> TransportP;
+  // components TransportP;
+  // Node.Transport -> TransportP;
 
 }

@@ -20,4 +20,7 @@ implementation {
 
    components new TimerMilliC() as LinkStateTimer;
    LinkStateP.LinkStateTimer->LinkStateTimer;
+
+   components new TimerMilliC() as RegularTimer;
+   LinkStateP.RegularTimer->RegularTimer;
 }
