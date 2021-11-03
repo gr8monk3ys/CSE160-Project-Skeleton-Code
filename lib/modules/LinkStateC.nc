@@ -13,7 +13,7 @@ implementation {
    LinkStateP.Random->RandomC;
 
    components new HashMapC(Route, 256);
-   LinkStateP.RoutingTable->HashMapC;
+   LinkStateP.RouteTable->HashMapC;
 
    components new SimpleSendC(AM_PACK);
    LinkStateP.Sender->SimpleSendC;
