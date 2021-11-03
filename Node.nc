@@ -193,13 +193,17 @@ else {
      }
 
      //to print the table 
-     event void CommandHandler.printRouteTable() {}
-
-     event void CommandHandler.printLinkState() {
-        call LinkState.printRoutingTable();
+     event void CommandHandler.printRouteTable() {
+        call LinkState.printRouteTable();
      }
 
-     event void CommandHandler.printDistanceVector() {}
+     event void CommandHandler.printLinkState(){ 
+        dbg(GENERAL_CHANNEL, "printLinkState\n"); 
+        }
+
+     event void CommandHandler.printDistanceVector() {
+        call LinkState.printRouteTable();
+     }
 
      event void CommandHandler.setTestServer() {}
 
