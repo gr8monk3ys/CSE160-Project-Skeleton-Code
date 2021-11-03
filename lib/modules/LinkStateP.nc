@@ -84,13 +84,13 @@ implementation {
   }
 
   void reset() {
-    uint16_t size = call RoutingTable.size();
+    uint16_t size = call RouteTable.size();
     uint16_t i;
 
     for (i = 0; i < size; i++) {
-      Route route = call RoutingTable.get(i);
+      Route route = call RouteTable.get(i);
       route.route_changed = FALSE;
-      call RoutingTable.set(i, route);
+      call RouteTable.insert(i, route);
     }
   }
 
@@ -108,6 +108,7 @@ implementation {
       i++;
     }
   }
+  
 
   void decrementTimer(Route route) {
     route.TTL = route.TTL - 1;
@@ -135,7 +136,7 @@ implementation {
           current_route.route_changed = TRUE;
 
           updateRoute(current_route);
-          call TriggeredEventTimer.startOneShot(rand(1000, 5000));
+          call LinkStateTimer.startOneShot(rand(1000, 5000));
         }
       }
     } else if (route.TTL == 0 && route.cost == ROUTE_MAX_COST) {
@@ -206,8 +207,7 @@ implementation {
       Route route = call RouteTable.get(i);
       uint16_t j;
 
-      route.cost == ROUTE_MAX_COST ?
-        continue;
+      route.cost == ROUTE_MAX_COST ? continue;
 
       if (route.cost == 1) {
         bool isNeighbor = FALSE;
@@ -237,7 +237,7 @@ implementation {
             triggeredUpdate();
           }
         } else {
-          call RoutingTable.pushback(route);
+          call RouteTable.pushback(route);
           triggeredUpdate();
         }
       }
@@ -265,43 +265,11 @@ implementation {
     }
   }
 
-  event void TriggeredEventTimer.fired() {
-    uint16_t size = call RouteTable.size();
-    uint16_t packet_index = 0;
-    uint16_t current_route;
-    pack msg;
-
-    msg.src = TOS_NODE_ID;
-    msg.TTL = 1;
-    msg.protocol = PROTOCOL_DV;
-    msg.seq = 0;
-
-    memset(( & msg.payload), '\0', PACKET_MAX_PAYLOAD_SIZE);
-
-    for (current_route = 0; current_route < size; current_route++) {
-      Route route = call RouteTable.get(current_route);
-      msg.dest = route.dest;
-
-      if (route.route_changed) {
-        memcpy(( & msg.payload) + packet_index * ROUTE_SIZE, & route, ROUTE_SIZE);
-
-        packet_index++;
-        if (packet_index == routes) {
-          packet_index = 0;
-
-          call Sender.send(msg, AM_BROADCAST_ADDR);
-          memset(( & msg.payload), '\0', PACKET_MAX_PAYLOAD_SIZE);
-        }
-      }
-    }
-    reset();
-  }
-
   event void RegularTimer.fired() {
     uint16_t size = call RouteTable.size();
     uint16_t i;
 
-    call TriggeredEventTimer.stop();
+    call LinkStateTimer.stop();
     decrementRouteTimers();
 
     while (i < size) {
@@ -314,7 +282,7 @@ implementation {
       updateRoute(route);
     }
 
-    signal TriggeredEventTimer.fired();
+    signal LinkStateTimer.fired();
   }
 
   command void LinkState.start() {
