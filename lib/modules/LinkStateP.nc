@@ -19,7 +19,7 @@ module LinkStateP {
 
 implementation {
 
-  uint16_t routesPerPacket = 1;
+  uint16_t routes = 1;
 
   uint32_t randNum(uint32_t min, uint32_t max) {
     return (call Random.rand16() % (max - min + 1)) + min;
@@ -182,7 +182,7 @@ implementation {
   command void LinkState.recieve(pack * routing_packet) {
     uint16_t i;
 
-    for (i = 0; i < routesPerPacket; i++) {
+    for (i = 0; i < routes; i++) {
       Route current_route;
       memcpy( & current_route, ( & routing_packet -> payload) + i * ROUTE_SIZE, ROUTE_SIZE);
 
@@ -339,7 +339,7 @@ implementation {
         memcpy(( & msg.payload) + packet_index * ROUTE_SIZE, & route, ROUTE_SIZE);
 
         packet_index++;
-        if (packet_index == routesPerPacket) {
+        if (packet_index == routes) {
           packet_index = 0;
 
           call Sender.send(msg, AM_BROADCAST_ADDR);
