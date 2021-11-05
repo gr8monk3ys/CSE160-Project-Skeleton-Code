@@ -33,7 +33,7 @@ void Reply(pack* msg) {
 }
 
 //Timer
-void decrement_timeout() {
+void decrementTimeout() {
     uint16_t i = 0;
     uint32_t* neighborNodes = call NeighborNodes.getKeys();
 
