@@ -72,7 +72,7 @@ implementation {
       }
     }
 
-    dbg(ROUTING_CHANNEL, "ERROR - Can't remove nonexistent route %d\n", dest);
+    dbg(ROUTING_CHANNEL, "Error: Can't remove nonexistent route %d\n", dest);
   }
 
   void updateRoute(Route route) {
@@ -88,7 +88,7 @@ implementation {
       }
     }
 
-    dbg(ROUTING_CHANNEL, "ERROR - Update attempt on nonexistent route %d\n", route.dest);
+    dbg(ROUTING_CHANNEL, "Error: Update attempt on nonexistent route %d\n", route.dest);
   }
 
   void resetRouteUpdates() {
@@ -152,7 +152,7 @@ implementation {
 
   command void LinkState.start() {
     if (call RoutingTable.size() == 0) {
-      dbg(ROUTING_CHANNEL, "ERROR - Can't route with no neighbors! Make sure to updateNeighbors first.\n");
+      dbg(ROUTING_CHANNEL, "Error: Can't route with no neighbors! Make sure to updateNeighbors first.\n");
       return;
     }
 
@@ -166,14 +166,14 @@ implementation {
     Route route;
 
     if (!inTable(msg -> dest)) {
-      dbg(ROUTING_CHANNEL, "Cannot send packet from %d to %d: no connection\n", msg -> src, msg -> dest);
+      dbg(ROUTING_CHANNEL, "Can't send packet from %d to %d: no connection\n", msg -> src, msg -> dest);
       return;
     }
 
     route = getRoute(msg -> dest);
 
     if (route.cost == ROUTE_MAX_COST) {
-      dbg(ROUTING_CHANNEL, "Cannot send packet from %d to %d: cost infinity\n", msg -> src, msg -> dest);
+      dbg(ROUTING_CHANNEL, "Can't send packet from %d to %d: cost infinity\n", msg -> src, msg -> dest);
       return;
     }
 
@@ -198,7 +198,7 @@ implementation {
       }
 
       if (current_route.cost > ROUTE_MAX_COST) {
-        dbg(ROUTING_CHANNEL, "ERROR - Invalid route cost of %d from %d\n", current_route.cost, current_route.dest);
+        dbg(ROUTING_CHANNEL, "Error: Invalid route cost of %d from %d\n", current_route.cost, current_route.dest);
         continue;
       }
 
@@ -309,18 +309,6 @@ implementation {
     }
   }
 
-  command void LinkState.printRouteTable() {
-    uint16_t size = call RoutingTable.size();
-    uint16_t i;
-
-    dbg(GENERAL_CHANNEL, "--- dest\tnext hop\tcost ---\n");
-    for (i = 0; i < size; i++) {
-      Route route = call RoutingTable.get(i);
-      dbg(GENERAL_CHANNEL, "--- %d\t\t%d\t\t\t%d\n", route.dest, route.next_hop, route.cost);
-    }
-    dbg(GENERAL_CHANNEL, "--------------------------------\n");
-  }
-
   event void LinkStateTimer.fired() {
     uint16_t size = call RoutingTable.size();
     uint16_t packet_index = 0;
@@ -370,5 +358,17 @@ implementation {
     }
 
     signal LinkStateTimer.fired();
+  }
+
+  command void LinkState.printRouteTable() {
+    uint16_t size = call RoutingTable.size();
+    uint16_t i;
+
+    dbg(GENERAL_CHANNEL, "--- dest\tnext hop\tcost ---\n");
+    for (i = 0; i < size; i++) {
+      Route route = call RoutingTable.get(i);
+      dbg(GENERAL_CHANNEL, "--- %d\t%d\t%d\n", route.dest, route.next_hop, route.cost);
+    }
+    dbg(GENERAL_CHANNEL, "--------------------------------\n");
   }
 }
