@@ -91,4 +91,24 @@ implementation{
 	command t List.get(uint16_t position){
 		return container[position];
 	}
+
+	command void List.set(uint16_t position, t input) {
+		container[position] = input;
+	}
+
+	command void List.remove(uint16_t position) {
+		uint16_t i;
+		
+		for (i = position; i < size-1; i++) {
+			container[i] = container[i+1];
+		}
+
+		size--;
+	}
+
+	command void List.clear() {
+		while (size > 0) {
+			call List.popback();
+		}
+	}
 }

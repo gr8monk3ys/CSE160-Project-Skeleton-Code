@@ -23,4 +23,7 @@ interface List<t>{
 	command bool isEmpty();
 	command uint16_t size();
 	command t get(uint16_t position);
+	command void set(uint16_t position, t input);
+	command void remove(uint16_t position);
+	command void clear();
 }

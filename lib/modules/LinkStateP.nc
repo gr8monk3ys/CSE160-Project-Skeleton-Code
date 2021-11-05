@@ -21,11 +21,11 @@ module LinkStateP {
 }
 
 implementation {
-  pack packet; //packet to be used
+  //pack packet; //packet to be used
   uint16_t routes = 1; //route weight
 
   //our routing table to be used:
-  uint16_t routeNumNodes;
+  //uint16_t routeNumNodes;
 
   uint32_t rand(uint32_t min, uint32_t max) {
     return (call Random.rand16() % (max - min + 1)) + min;
@@ -193,10 +193,13 @@ implementation {
 
     route = getRoute(msg -> dest);
 
-    if (!call RouteTable.contains(msg -> dest)) {
-      dbg(GENERAL_CHANNEL, "No connection, cant send packet");
+    if (route.cost == ROUTE_MAX_COST) {
+      dbg(GENERAL_CHANNEL, "No connection, cant send packet from %d to %d: the cost is infinte\n", msg->src, msg->dest);
+      return;
+
     }
     dbg(GENERAL_CHANNEL, "src: %d, dest: %d, seq: %d, cost: %d, next hop: %d", msg -> src, msg -> dest, msg -> seq, route.cost, route.next_hop);
+    
     call Sender.send( * msg, route.next_hop);
   }
 
