@@ -132,12 +132,11 @@ implementation {
   }
 
   void decrementRouteTimers() {
-    uint16_t i;
-
-    for (i = 0; i < call RoutingTable.size(); i++) {
-      Route route = call RoutingTable.get(i);
-
+    uint16_t i = 0;
+    while(i < call RoutingTable.size()){
+      oute route = call RoutingTable.get(i);
       decrementTimer(route);
+      i++;
     }
   }
 
