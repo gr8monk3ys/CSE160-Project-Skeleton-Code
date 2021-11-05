@@ -35,7 +35,7 @@ implementation {
    */
   bool inTable(uint16_t dest) {
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
+    uint16_t i = 0;
     bool isInTable = FALSE;
     while (i < size) {
       Route route = call RoutingTable.get(i);
@@ -44,6 +44,7 @@ implementation {
         isInTable = TRUE;
         break;
       }
+      i++;
     }
 
     return isInTable;
@@ -65,6 +66,7 @@ implementation {
         return_route = route;
         break;
       }
+      i++;
     }
 
     return return_route;
@@ -85,6 +87,7 @@ implementation {
         call RoutingTable.remove(i);
         return;
       }
+      i++;
     }
     dbg(ROUTING_CHANNEL, "Error: Can't remove route %d\n", dest);
   }
@@ -105,13 +108,11 @@ implementation {
         call RoutingTable.set(i, route);
         return;
       }
+      i++;
     }
     dbg(ROUTING_CHANNEL, "Error: Update route doesn't exist %d\n", route.dest);
   }
 
-  /**
-   * Resets the 'route changed' flag in all routes
-   */
   void resetRouteUpdates() {
     uint16_t size = call RoutingTable.size();
     uint16_t i = 0;
@@ -119,26 +120,18 @@ implementation {
       Route route = call RoutingTable.get(i);
       route.route_changed = FALSE;
       call RoutingTable.set(i, route);
+      i++;
     }
   }
 
-  /**
-   * Starts the timer before a triggered update is sent
-   * Timer resets upon another function call
-   */
   void triggeredUpdate() {
     call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
   }
 
-  /**
-   * Decrements the timer on the given route
-   * Invalidates the route, or removes it based on which timer runs out
-   */
   void decrementTimer(Route route) {
     route.TTL = route.TTL - 1;
     updateRoute(route);
 
-    // Timeout timer expired, start garbage collection timer
     if (route.TTL == 0 && route.cost != ROUTE_MAX_COST) {
       uint16_t size = call RoutingTable.size();
       uint16_t i;
@@ -150,7 +143,6 @@ implementation {
       updateRoute(route);
       triggeredUpdate();
 
-      // Invalidate routes that had a next hop with that node
       for (i = 0; i < size; i++) {
         Route current_route = call RoutingTable.get(i);
 
@@ -168,11 +160,6 @@ implementation {
     }
   }
 
-  /**
-   * Decrements the timeout on each route in the table
-   * If the timeout timer expires, garbage collection starts.
-   * If garbage collection finishes, the route is deleted.
-   */
   void decrementRouteTimers() {
     uint16_t i = 0;
     while (i < call RoutingTable.size()) {
@@ -182,18 +169,11 @@ implementation {
     }
   }
 
-  /**
-   * Marks a route as invalid, initiates timeout functionality
-   */
   void invalidate(Route route) {
     route.TTL = 1;
     decrementTimer(route);
   }
 
-  /**
-   * Initializes the routing process
-   * Have to call updateNeighbors first
-   */
   command void LinkState.start() {
     if (call RoutingTable.size() == 0) {
       dbg(ROUTING_CHANNEL, "Error: No neighbors detected. Check updateNeighbors().\n");
@@ -202,13 +182,10 @@ implementation {
 
     if (!call RegularTimer.isRunning()) {
       dbg(ROUTING_CHANNEL, "Routing initializing...\n");
-      call RegularTimer.startPeriodic(rand(25000, 35000));
+      call RegularTimer.startPeriodic(randNum(25000, 35000));
     }
   }
 
-  /**
-   * Sends given packet based on the routing table's next hop value
-   */
   command void LinkState.send(pack * msg) {
     Route route;
 
@@ -229,10 +206,6 @@ implementation {
     call Sender.send( * msg, route.next_hop);
   }
 
-  /**
-   * Called when the node recieves a routing packet
-   * Processes the route information from the packet
-   */
   command void LinkState.recieve(pack * routing_packet) {
     uint16_t i;
 
@@ -285,7 +258,6 @@ implementation {
       } else {
         Route existing_route = getRoute(current_route.dest);
 
-        // Update to existing route, reset TTL
         if (existing_route.next_hop == routing_packet -> src) {
           existing_route.TTL = ROUTE_TIMEOUT;
         }
@@ -319,10 +291,6 @@ implementation {
     }
   }
 
-  /**
-   * Updates the neighbor list associated with this routing handler.
-   * Updates routes in table for neighbors
-   */
   command void LinkState.updateNeighbors(uint32_t * neighbors, uint16_t numNeighbors) {
     uint16_t i = 0;
     uint16_t size = call RoutingTable.size();
@@ -331,12 +299,10 @@ implementation {
       Route route = call RoutingTable.get(i);
       uint16_t j;
 
-      // Don't immediately re-invalidate an invalid entry
       if (route.cost == ROUTE_MAX_COST) {
         continue;
       }
 
-      // Invalidate the route if it's no longer a neighbor
       if (route.cost == 1) {
         bool isNeighbor = FALSE;
 
@@ -378,10 +344,6 @@ implementation {
     }
   }
 
-  /**
-   * Called by simulation
-   * Prints the routing table in 'destination, next hop, cost' format
-   */
   command void LinkState.printRouteTable() {
     uint16_t size = call RoutingTable.size();
     uint16_t i;
@@ -394,10 +356,6 @@ implementation {
     dbg(GENERAL_CHANNEL, "--------------------------------\n");
   }
 
-  /**
-   * Sends all routes with route_changed = TRUE to all neighbor nodes
-   * Should only ever be run as a one-time timer, not periodically
-   */
   event void TriggeredEventTimer.fired() {
     uint16_t size = call RoutingTable.size();
     uint16_t packet_index = 0;
@@ -407,11 +365,10 @@ implementation {
     msg.src = TOS_NODE_ID;
     msg.TTL = 1;
     msg.protocol = PROTOCOL_LINKSTATE;
-    msg.seq = 0; // NOTE: Change if requests are needed
+    msg.seq = 0;
 
     memset(( & msg.payload), '\0', PACKET_MAX_PAYLOAD_SIZE);
 
-    // Go through all routes looking for changed ones
     for (current_route = 0; current_route < size; current_route++) {
       Route route = call RoutingTable.get(current_route);
 
@@ -434,18 +391,13 @@ implementation {
     resetRouteUpdates();
   }
 
-  /**
-   * Processes TTL and sends entire routing table to neighbors
-   */
   event void RegularTimer.fired() {
     uint16_t size = call RoutingTable.size();
     uint16_t i;
 
-    // Stop triggered event timer, no need to send at this point
     call TriggeredEventTimer.stop();
     decrementRouteTimers();
 
-    // Mark all nodes as changed, let TriggeredEvent handle the sending
     for (i = 0; i < size; i++) {
       Route route = call RoutingTable.get(i);
       route.route_changed = TRUE;
