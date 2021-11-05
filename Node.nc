@@ -102,10 +102,17 @@ implementation {
   //A function when we recieve packets:
   event message_t * Receive.receive(message_t * msg, void * payload, uint8_t len) {
 
-    dbg(GENERAL_CHANNEL, "Packet Received\n");
+    //dbg(GENERAL_CHANNEL, "Packet Received\n");
 
     if (len == sizeof(pack)) {
       pack * myMsg = (pack * ) payload;
+
+
+
+      // Check TTL
+            if (myMsg->TTL-- == 0) {
+                return msg;
+            }
 
       //check TTL
 
@@ -152,6 +159,7 @@ implementation {
 
         //REGULAR PING
       } else if (myMsg -> dest == TOS_NODE_ID) {
+        pingHandler(myMsg);
 
         //neighbor discovery
       } else if (myMsg -> dest == AM_BROADCAST_ADDR) {
@@ -190,9 +198,8 @@ implementation {
   event void CommandHandler.ping(uint16_t destination, uint8_t * payload) {
 
     dbg(GENERAL_CHANNEL, "PING EVENT \n");
-
     //specific packet (via protocol ping is being produced)
-    makePack( & sendPackage, TOS_NODE_ID, destination, 19, PROTOCOL_PING, current_seq++, payload, PACKET_MAX_PAYLOAD_SIZE);
+    makePack(& sendPackage, TOS_NODE_ID, destination, MAX_TTL, PROTOCOL_PING, current_seq++, payload, PACKET_MAX_PAYLOAD_SIZE);
     call Sender.send(sendPackage, destination);
     call LinkState.send( & sendPackage);
   }

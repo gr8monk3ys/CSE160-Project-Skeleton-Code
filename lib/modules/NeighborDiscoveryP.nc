@@ -15,7 +15,7 @@ implementation{
 void makePack(pack* neighborPack, uint16_t seq) {
     neighborPack->src = TOS_NODE_ID;
     neighborPack->dest = AM_BROADCAST_ADDR;
-    neighborPack->TTL = 0;
+    neighborPack->TTL = 1;
     neighborPack->seq = seq;
     neighborPack->protocol = PROTOCOL_PING; //a ping and not a reply
 
