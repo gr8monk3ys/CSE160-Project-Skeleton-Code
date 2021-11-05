@@ -64,8 +64,8 @@ implementation {
   // Gets called for initial processes
   event void Boot.booted() {
     call AMControl.start();
-    call NeighborTimer.startOneShot(30000);
-    call LinkStateTimer.startOneShot(30000);
+    call NeighborTimer.startPeriodic(randNum(25000,35000));
+    call LinkStateTimer.startPeriodic(randNum(25000,35000));
     dbg(GENERAL_CHANNEL, "Booted\n");
   }
 
@@ -180,14 +180,14 @@ implementation {
   //To run neighbor discovery:
 
   event void NeighborTimer.fired() {
-    call NeighborDiscovery.find(current_seq++);
+    call NeighborDiscovery.discover(current_seq++);
   }
 
   //to run link state routing:
   event void LinkStateTimer.fired() {
 
     //to gather our neighbors and the total number as the key....
-    uint32_t* neighbors = call NeighborDiscovery.gatherNeighbors();
+    uint32_t* neighbors = call NeighborDiscovery.getNeighbors();
     uint16_t numNeighbors = call NeighborDiscovery.numNeighbors();
 
     call LinkState.updateNeighbors(neighbors, numNeighbors);
@@ -212,7 +212,7 @@ implementation {
 
   //to print the table of node IDS  
   event void CommandHandler.printRouteTable() {
-    call LinkState.printRouteTable();
+    call LinkState.printRoutingTable();
   }
 
   event void CommandHandler.printLinkState() {
@@ -222,7 +222,7 @@ implementation {
 
 //printing a routing table
 event void CommandHandler.printDistanceVector() {
-  call LinkState.printRouteTable();
+  call LinkState.printRoutingTable();
 }
 
 event void CommandHandler.setTestServer() {}
