@@ -102,10 +102,6 @@ implementation {
     }
   }
 
-  void triggeredUpdate() {
-    call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
-  }
-
   void decrementTimer(Route route) {
     route.TTL = route.TTL - 1;
     updateRoute(route);
@@ -119,7 +115,7 @@ implementation {
       route.route_changed = TRUE;
 
       updateRoute(route);
-      triggeredUpdate();
+      call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
 
       for (i = 0; i < size; i++) {
         Route current_route = call RoutingTable.get(i);
@@ -130,7 +126,7 @@ implementation {
           current_route.route_changed = TRUE;
 
           updateRoute(current_route);
-          triggeredUpdate();
+          call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
         }
       }
     }
@@ -224,7 +220,7 @@ implementation {
 
         call RoutingTable.pushback(current_route);
 
-        triggeredUpdate();
+        call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
         continue;
       }
 
@@ -303,12 +299,12 @@ implementation {
 
         if (existing_route.cost != route.cost) {
           updateRoute(route);
-          triggeredUpdate();
+          call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
         }
       }
       else {
         call RoutingTable.pushback(route);
-        triggeredUpdate();
+        call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
       }
     }
   }
