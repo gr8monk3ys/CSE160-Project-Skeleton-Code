@@ -44,17 +44,16 @@ implementation {
   Route getRoute(uint16_t dest) {
     Route return_route;
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
-
-    for (i = 0; i < size; i++) {
+    uint16_t i = 0;
+    while(i < size) {
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
         return_route = route;
         break;
       }
+      i++;
     }
-
     return return_route;
   }
 
