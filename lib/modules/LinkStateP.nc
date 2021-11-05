@@ -13,7 +13,7 @@ module LinkStateP {
 
   uses interface Random;
 
-  uses interface Timer < TMilli > as TriggeredEventTimer;
+  uses interface Timer < TMilli > as LinkStateTimer;
   uses interface Timer < TMilli > as RegularTimer;
 }
 
@@ -115,7 +115,7 @@ implementation {
       route.route_changed = TRUE;
 
       updateRoute(route);
-      call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+      call LinkStateTimer.startOneShot(randNum(1000, 5000));
 
       for (i = 0; i < size; i++) {
         Route current_route = call RoutingTable.get(i);
@@ -126,7 +126,7 @@ implementation {
           current_route.route_changed = TRUE;
 
           updateRoute(current_route);
-          call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+          call LinkStateTimer.startOneShot(randNum(1000, 5000));
         }
       }
     }
@@ -220,7 +220,7 @@ implementation {
 
         call RoutingTable.pushback(current_route);
 
-        call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+        call LinkStateTimer.startOneShot(randNum(1000, 5000));
         continue;
       }
 
@@ -299,12 +299,12 @@ implementation {
 
         if (existing_route.cost != route.cost) {
           updateRoute(route);
-          call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+          call LinkStateTimer.startOneShot(randNum(1000, 5000));
         }
       }
       else {
         call RoutingTable.pushback(route);
-        call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+        call LinkStateTimer.startOneShot(randNum(1000, 5000));
       }
     }
   }
@@ -321,7 +321,7 @@ implementation {
     dbg(GENERAL_CHANNEL, "--------------------------------\n");
   }
 
-  event void TriggeredEventTimer.fired() {
+  event void LinkStateTimer.fired() {
     uint16_t size = call RoutingTable.size();
     uint16_t packet_index = 0;
     uint16_t current_route;
@@ -360,7 +360,7 @@ implementation {
     uint16_t size = call RoutingTable.size();
     uint16_t i;
 
-    call TriggeredEventTimer.stop();
+    call LinkStateTimer.stop();
     decrementRouteTimers();
 
     for (i = 0; i < size; i++) {
@@ -369,6 +369,6 @@ implementation {
       updateRoute(route);
     }
 
-    signal TriggeredEventTimer.fired();
+    signal LinkStateTimer.fired();
   }
 }

@@ -19,8 +19,8 @@ implementation {
   components new SimpleSendC(AM_PACK);
   LinkStateP.Sender -> SimpleSendC;
 
-  components new TimerMilliC() as TriggeredEventTimer;
-  LinkStateP.TriggeredEventTimer -> TriggeredEventTimer;
+  components new TimerMilliC() as LinkStateTimer;
+  LinkStateP.LinkStateTimer -> LinkStateTimer;
 
   components new TimerMilliC() as RegularTimer;
   LinkStateP.RegularTimer -> RegularTimer;
