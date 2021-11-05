@@ -67,6 +67,7 @@ implementation {
         call RoutingTable.remove(i);
         return;
       }
+      i++;
     }
     dbg(ROUTING_CHANNEL, "Error - Can't remove nonexistent route %d\n", dest);
   }
@@ -82,18 +83,19 @@ implementation {
         call RoutingTable.set(i, route);
         return;
       }
+      i++;
     }
     dbg(ROUTING_CHANNEL, "Error - Update attempt on nonexistent route %d\n", route.dest);
   }
 
   void resetRouteUpdates() {
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
-
-    for (i = 0; i < size; i++) {
+    uint16_t i = 0;
+    while(i < size){
       Route route = call RoutingTable.get(i);
       route.route_changed = FALSE;
       call RoutingTable.set(i, route);
+      i++;
     }
   }
 
