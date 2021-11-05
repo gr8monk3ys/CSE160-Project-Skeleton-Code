@@ -21,7 +21,7 @@ implementation {
 
   uint16_t routes = 1;
 
-  uint32_t randNum(uint32_t min, uint32_t max) {
+  uint32_t rand(uint32_t min, uint32_t max) {
     return (call Random.rand16() % (max - min + 1)) + min;
   }
 
@@ -110,7 +110,7 @@ implementation {
       route.route_changed = TRUE;
 
       updateRoute(route);
-      call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+      call TriggeredEventTimer.startOneShot(rand(1000, 5000));
 
       for (i = 0; i < size; i++) {
         Route current_route = call RoutingTable.get(i);
@@ -120,7 +120,7 @@ implementation {
           current_route.cost = ROUTE_MAX_COST;
           current_route.route_changed = TRUE;
           updateRoute(current_route);
-          call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+          call TriggeredEventTimer.startOneShot(rand(1000, 5000));
         }
       }
     }
@@ -152,7 +152,7 @@ implementation {
 
     if (!call RegularTimer.isRunning()) {
       dbg(ROUTING_CHANNEL, "Intiating routing protocol...\n");
-      call RegularTimer.startPeriodic(randNum(25000, 35000));
+      call RegularTimer.startPeriodic(rand(25000, 35000));
     }
   }
 
@@ -214,7 +214,7 @@ implementation {
 
         call RoutingTable.pushback(current_route);
 
-        call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+        call TriggeredEventTimer.startOneShot(rand(1000, 5000));
         continue;
       }
 
@@ -291,12 +291,12 @@ implementation {
 
         if (existing_route.cost != route.cost) {
           updateRoute(route);
-          call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+          call TriggeredEventTimer.startOneShot(rand(1000, 5000));
         }
       }
       else {
         call RoutingTable.pushback(route);
-        call TriggeredEventTimer.startOneShot(randNum(1000, 5000));
+        call TriggeredEventTimer.startOneShot(rand(1000, 5000));
       }
     }
   }
