@@ -45,6 +45,7 @@ implementation {
     Route return_route;
     uint16_t size = call RoutingTable.size();
     uint16_t i = 0;
+    
     while (i < size) {
       Route route = call RoutingTable.get(i);
 
@@ -60,6 +61,7 @@ implementation {
   void removeRoute(uint16_t dest) {
     uint16_t size = call RoutingTable.size();
     uint16_t i = 0;
+    
     while (i < size) {
       Route route = call RoutingTable.get(i);
 
