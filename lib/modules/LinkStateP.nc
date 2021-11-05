@@ -7,11 +7,11 @@
 #undef min
 #define min(a, b)((a) < (b) ? (a) : (b))
 
-module LinkStateP { 
+module LinkStateP {
   provides interface LinkState;
   uses interface NeighborDiscovery as nd;
 
-  uses interface Hashmap < Route > as RouteTable;
+  uses interface List < Route > as RouteTable;
   uses interface SimpleSend as Sender;
 
   uses interface Random;
@@ -53,7 +53,7 @@ implementation {
     uint16_t route_size = call RouteTable.size();
     uint16_t i = 0;
 
-    while (i < route_size) {  
+    while (i < route_size) {
       Route route = call RouteTable.get(i);
 
       if (route.dest == dest) {
@@ -88,7 +88,7 @@ implementation {
     while (i < size) {
       Route current = call RouteTable.get(i);
       if (route.dest == current.dest) {
-        call RouteTable.insert(i, route); //set doesnt exist in the functions for Lists
+        call RouteTable.set(i, route); //set doesnt exist in the functions for Lists
 
         return;
       }
@@ -103,11 +103,9 @@ implementation {
     for (i = 0; i < size; i++) {
       Route route = call RouteTable.get(i);
       route.route_changed = FALSE;
-      call RouteTable.insert(i, route);
+      call RouteTable.set(i, route);
     }
   }
-
-  
 
   void resetRouteUpdates() {
     uint16_t size = call RouteTable.size();
@@ -116,7 +114,7 @@ implementation {
     for (i = 0; i < size; i++) {
       Route route = call RouteTable.get(i);
       route.route_changed = FALSE;
-      call RouteTable.insert(i, route);
+      call RouteTable.set(i, route);
     }
   }
 
@@ -247,7 +245,7 @@ implementation {
         current_route.TTL = ROUTE_TIMEOUT;
         current_route.route_changed = TRUE;
 
-        call RouteTable.insert(current_route.dest, current_route);
+        call RouteTable.pushback(current_route);
         call LinkStateTimer.startOneShot(rand(1000, 5000));
         continue;
       }
@@ -316,27 +314,42 @@ implementation {
           invalidate(route);
         }
       }
+      i++;
+    }
+    i = 0;
+    while (i < numNeighbors) {
+      Route route;
 
-      i = 0;
-      while (i < numNeighbors) {
-        //Route route;
+      route.cost = 1;
+      route.dest = neighbors[i];
+      route.next_hop = neighbors[i];
+      route.TTL = 10;
 
-        route.cost = 1;
-        route.dest = neighbors[i];
-        route.next_hop = neighbors[i];
-        route.TTL = 10;
-
-        if (inTable(route.dest)) {
-          Route existing = getRoute(route.dest);
-          if (existing.cost != route.cost) {
-            updateRoute(route);
-            call LinkStateTimer.startOneShot(rand(1000, 5000));
-          }
-        } else {
-          call RouteTable.remove(route.dest);
+      if (inTable(route.dest)) {
+        Route existing = getRoute(route.dest);
+        if (existing.cost != route.cost) {
+          updateRoute(route);
           call LinkStateTimer.startOneShot(rand(1000, 5000));
         }
+      } else {
+        call RouteTable.remove(route.dest);
+        call LinkStateTimer.startOneShot(rand(1000, 5000));
       }
+      i++;
+    }
+
+  }
+
+  command void LinkState.printRouteTable() {
+    uint16_t size = call RouteTable.size();
+    uint16_t i;
+
+    dbg(GENERAL_CHANNEL, "--- dest\tnext hop\tcost ---\n");
+    i = 0;
+    while (i < size) {
+
+      Route route = call RouteTable.get(i);
+      dbg(GENERAL_CHANNEL, "--- %d\t\t%d\t\t\t%d\n", route.dest, route.next_hop, route.cost);
       i++;
     }
   }
@@ -393,17 +406,4 @@ implementation {
     signal LinkStateTimer.fired();
   }
 
-  command void LinkState.printRouteTable() {
-    uint16_t size = call RouteTable.size();
-    uint16_t i;
-
-    dbg(GENERAL_CHANNEL, "--- dest\tnext hop\tcost ---\n");
-    i = 0;
-    while (i < size) {
-
-      Route route = call RouteTable.get(i);
-      dbg(GENERAL_CHANNEL, "--- %d\t\t%d\t\t\t%d\n", route.dest, route.next_hop, route.cost);
-      i++;
-    }
-  }
 }

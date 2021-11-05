@@ -12,8 +12,8 @@ implementation {
    components  RandomC;
    LinkStateP.Random->RandomC;
 
-   components new HashMapC(Route, 256);
-   LinkStateP.RouteTable->HashMapC;
+   components new ListC(Route, 256);
+   LinkStateP.RouteTable->ListC;
 
    components new SimpleSendC(AM_PACK);
    LinkStateP.Sender->SimpleSendC;
