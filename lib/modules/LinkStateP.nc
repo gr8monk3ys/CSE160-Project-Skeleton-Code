@@ -78,6 +78,8 @@ implementation {
       }
       i++;
     }
+    
+    dbg(ROUTING_CHANNEL, "ERROR - Can't remove nonexistent route %d\n", dest);
   }
 
   // Updates the route if the current route is the route provided
@@ -86,8 +88,8 @@ implementation {
     uint16_t i = 0;
 
     while (i < size) {
-      Route current = call RouteTable.get(i);
-      if (route.dest == current.dest) {
+      Route current_route = call RouteTable.get(i);
+      if (route.dest == current_route.dest) {
         call RouteTable.set(i, route); //set doesnt exist in the functions for Lists
 
         return;
@@ -96,16 +98,16 @@ implementation {
     }
   }
 
-  void reset() {
-    uint16_t size = call RouteTable.size();
-    uint16_t i;
+  // void reset() {
+  //   uint16_t size = call RouteTable.size();
+  //   uint16_t i;
 
-    for (i = 0; i < size; i++) {
-      Route route = call RouteTable.get(i);
-      route.route_changed = FALSE;
-      call RouteTable.set(i, route);
-    }
-  }
+  //   for (i = 0; i < size; i++) {
+  //     Route route = call RouteTable.get(i);
+  //     route.route_changed = FALSE;
+  //     call RouteTable.set(i, route);
+  //   }
+  // }
 
   void resetRouteUpdates() {
     uint16_t size = call RouteTable.size();
@@ -149,7 +151,7 @@ implementation {
         }
       }
     } else if (route.TTL == 0 && route.cost == ROUTE_MAX_COST) {
-      call RouteTable.remove(route.dest);
+      deleteRoute(route.dest);
     }
   }
 
@@ -186,10 +188,10 @@ implementation {
   command void LinkState.send(pack * msg) {
     Route route;
 
-    if (route.cost == ROUTE_MAX_COST) {
-      dbg(GENERAL_CHANNEL, "Infinite cost loop, cant send packet", msg -> src, msg -> dest);
-      return;
-    }
+    if (!inTable(msg->dest)) {
+            dbg(ROUTING_CHANNEL, "Cannot send packet from %d to %d: no connection\n", msg->src, msg->dest);
+            return;
+        }
 
     route = getRoute(msg -> dest);
 
@@ -199,7 +201,7 @@ implementation {
 
     }
     dbg(GENERAL_CHANNEL, "src: %d, dest: %d, seq: %d, cost: %d, next hop: %d", msg -> src, msg -> dest, msg -> seq, route.cost, route.next_hop);
-    
+
     call Sender.send( * msg, route.next_hop);
   }
 
@@ -293,7 +295,9 @@ implementation {
 
   command void LinkState.updateNeighbors(uint32_t * neighbors, uint16_t numNeighbors) {
     uint16_t i = 0;
+    
     uint16_t size = call RouteTable.size();
+    
 
     while (i < size) {
       Route route = call RouteTable.get(i);
@@ -305,6 +309,7 @@ implementation {
 
       if (route.cost == 1) {
         bool isNeighbor = FALSE;
+
         j = 0;
         while (j < numNeighbors) {
           if (route.dest == neighbors[j]) {
@@ -313,34 +318,41 @@ implementation {
           }
           j++;
         }
+
         if (!isNeighbor) {
           invalidate(route);
         }
       }
       i++;
     }
+
     i = 0;
     while (i < numNeighbors) {
+      
       Route route;
 
       route.cost = 1;
       route.dest = neighbors[i];
       route.next_hop = neighbors[i];
-      route.TTL = 10;
+      route.TTL = ROUTE_TIMEOUT;
+      route.route_changed = TRUE;
 
       if (inTable(route.dest)) {
-        Route existing = getRoute(route.dest);
-        if (existing.cost != route.cost) {
+        Route existing_route = getRoute(route.dest);
+
+        if (existing_route.cost != route.cost) {
           updateRoute(route);
           call LinkStateTimer.startOneShot(rand(1000, 5000));
         }
-      } else {
-        call RouteTable.remove(route.dest);
+      } 
+      else {
+        call RouteTable.pushback(route);
         call LinkStateTimer.startOneShot(rand(1000, 5000));
       }
       i++;
     }
 
+    dbg(GENERAL_CHANNEL, "RouteTable size: %d\n", size);
   }
 
   command void LinkState.printRouteTable() {
@@ -355,6 +367,7 @@ implementation {
       dbg(GENERAL_CHANNEL, "--- %d\t\t%d\t\t\t%d\n", route.dest, route.next_hop, route.cost);
       i++;
     }
+    dbg(GENERAL_CHANNEL, "--------------------------------\n");
   }
 
   event void LinkStateTimer.fired() {
@@ -378,7 +391,7 @@ implementation {
 
       if (route.route_changed) {
 
-        memcpy(( & msg.payload) + packet_index * ROUTE_SIZE, & route, ROUTE_SIZE);
+        memcpy(( & msg.payload) + packet_index * ROUTE_SIZE, &route, ROUTE_SIZE);
 
         packet_index++;
         if (packet_index == routes) {
