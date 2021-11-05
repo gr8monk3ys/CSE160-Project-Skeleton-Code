@@ -37,8 +37,7 @@ implementation {
     uint16_t size = call RoutingTable.size();
     uint16_t i;
     bool isInTable = FALSE;
-
-    for (i = 0; i < size; i++) {
+    while (i < size) {
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
@@ -57,9 +56,8 @@ implementation {
   Route getRoute(uint16_t dest) {
     Route return_route;
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
-
-    for (i = 0; i < size; i++) {
+    uint16_t i = 0;
+    while (i < size) {
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
@@ -77,9 +75,8 @@ implementation {
    */
   void removeRoute(uint16_t dest) {
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
-
-    for (i = 0; i < size; i++) {
+    uint16_t i = 0;
+    while (i < size) {
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
@@ -87,8 +84,7 @@ implementation {
         return;
       }
     }
-
-    dbg(ROUTING_CHANNEL, "ERROR - Can't remove nonexistent route %d\n", dest);
+    dbg(ROUTING_CHANNEL, "Error: Can't remove route %d\n", dest);
   }
 
   /**
@@ -98,9 +94,9 @@ implementation {
    */
   void updateRoute(Route route) {
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
+    uint16_t i = 0;
 
-    for (i = 0; i < size; i++) {
+    while (i < size) {
       Route current_route = call RoutingTable.get(i);
 
       if (route.dest == current_route.dest) {
@@ -108,8 +104,7 @@ implementation {
         return;
       }
     }
-
-    dbg(ROUTING_CHANNEL, "ERROR - Update attempt on nonexistent route %d\n", route.dest);
+    dbg(ROUTING_CHANNEL, "Error: Update route doesn't exist %d\n", route.dest);
   }
 
   /**
@@ -117,9 +112,8 @@ implementation {
    */
   void resetRouteUpdates() {
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
-
-    for (i = 0; i < size; i++) {
+    uint16_t i = 0;
+    while (i < size) {
       Route route = call RoutingTable.get(i);
       route.route_changed = FALSE;
       call RoutingTable.set(i, route);
@@ -167,9 +161,7 @@ implementation {
           triggeredUpdate();
         }
       }
-    }
-    // Garbage collection timer expired, remove route
-    else if (route.TTL == 0 && route.cost == ROUTE_MAX_COST) {
+    } else if (route.TTL == 0 && route.cost == ROUTE_MAX_COST) {
       removeRoute(route.dest);
     }
   }
@@ -180,12 +172,11 @@ implementation {
    * If garbage collection finishes, the route is deleted.
    */
   void decrementRouteTimers() {
-    uint16_t i;
-
-    for (i = 0; i < call RoutingTable.size(); i++) {
+    uint16_t i = 0;
+    while (i < call RoutingTable.size()) {
       Route route = call RoutingTable.get(i);
-
       decrementTimer(route);
+      i++;
     }
   }
 
@@ -203,13 +194,13 @@ implementation {
    */
   command void LinkState.start() {
     if (call RoutingTable.size() == 0) {
-      dbg(ROUTING_CHANNEL, "ERROR - Can't route with no neighbors! Make sure to updateNeighbors first.\n");
+      dbg(ROUTING_CHANNEL, "Error: No neighbors detected. Check updateNeighbors().\n");
       return;
     }
 
     if (!call RegularTimer.isRunning()) {
-      dbg(ROUTING_CHANNEL, "Intiating routing protocol...\n");
-      call RegularTimer.startPeriodic(randNum(25000, 35000));
+      dbg(ROUTING_CHANNEL, "Routing initializing...\n");
+      call RegularTimer.startPeriodic(rand(25000, 35000));
     }
   }
 
@@ -220,14 +211,14 @@ implementation {
     Route route;
 
     if (!inTable(msg -> dest)) {
-      dbg(ROUTING_CHANNEL, "Cannot send packet from %d to %d: no connection\n", msg -> src, msg -> dest);
+      dbg(ROUTING_CHANNEL, "Can't send packet from %d to %d: no connection\n", msg -> src, msg -> dest);
       return;
     }
 
     route = getRoute(msg -> dest);
 
     if (route.cost == ROUTE_MAX_COST) {
-      dbg(ROUTING_CHANNEL, "Cannot send packet from %d to %d: cost infinity\n", msg -> src, msg -> dest);
+      dbg(ROUTING_CHANNEL, "Can't send packet from %d to %d: cost infinity\n", msg -> src, msg -> dest);
       return;
     }
 
@@ -260,7 +251,7 @@ implementation {
 
       // Cost should never be higher than the maximum
       if (current_route.cost > ROUTE_MAX_COST) {
-        dbg(ROUTING_CHANNEL, "ERROR - Invalid route cost of %d from %d\n", current_route.cost, current_route.dest);
+        dbg(ROUTING_CHANNEL, "Error: Invalid route cost of %d from %d\n", current_route.cost, current_route.dest);
         continue;
       }
 
@@ -289,10 +280,7 @@ implementation {
 
         triggeredUpdate();
         continue;
-      }
-
-      // Route Already Exists
-      else {
+      } else {
         Route existing_route = getRoute(current_route.dest);
 
         // Update to existing route, reset TTL
@@ -334,11 +322,10 @@ implementation {
    * Updates routes in table for neighbors
    */
   command void LinkState.updateNeighbors(uint32_t * neighbors, uint16_t numNeighbors) {
-    uint16_t i;
+    uint16_t i = 0;
     uint16_t size = call RoutingTable.size();
 
-    // Invalidate missing neighbors (in case one is dropped)
-    for (i = 0; i < size; i++) {
+    while (i < size) {
       Route route = call RoutingTable.get(i);
       uint16_t j;
 
@@ -362,10 +349,9 @@ implementation {
           invalidate(route);
         }
       }
-
+      i++;
     }
 
-    // Add neighbors to routing table
     for (i = 0; i < numNeighbors; i++) {
       Route route;
 
@@ -383,9 +369,7 @@ implementation {
           updateRoute(route);
           triggeredUpdate();
         }
-      }
-      // New neighbor 
-      else {
+      } else {
         call RoutingTable.pushback(route);
         triggeredUpdate();
       }
