@@ -59,13 +59,13 @@ implementation {
   // Prototypes
   void makePack(pack * Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t * payload, uint8_t length);
   void pingHandler(pack * msg);
-  uint32_t rand(uint32_t min, uint32_t max);
+  uint32_t randNum(uint32_t min, uint32_t max);
 
   // Gets called for initial processes
   event void Boot.booted() {
     call AMControl.start();
-    call NeighborTimer.startPeriodic(rand(25000,35000));
-    call LinkStateTimer.startPeriodic(rand(25000,35000));
+    call NeighborTimer.startPeriodic(randNum(25000,35000));
+    call LinkStateTimer.startPeriodic(randNum(25000,35000));
     dbg(GENERAL_CHANNEL, "Booted\n");
   }
 
@@ -243,7 +243,7 @@ void makePack(pack * Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_
   memcpy(Package -> payload, payload, length);
 }
 
-uint32_t rand(uint32_t min, uint32_t max) {
+uint32_t randNum(uint32_t min, uint32_t max) {
   return (call Random.rand16() % (max - min + 1)) + min;
 }
 }
