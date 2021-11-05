@@ -29,7 +29,7 @@ implementation {
     uint16_t size = call RoutingTable.size();
     uint16_t i = 0;
     bool isInTable = FALSE;
-    while(i < size) {
+    while (i < size) {
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
@@ -45,7 +45,7 @@ implementation {
     Route return_route;
     uint16_t size = call RoutingTable.size();
     uint16_t i = 0;
-    while(i < size) {
+    while (i < size) {
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
@@ -60,7 +60,7 @@ implementation {
   void removeRoute(uint16_t dest) {
     uint16_t size = call RoutingTable.size();
     uint16_t i = 0;
-    while(i < size){
+    while (i < size) {
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
@@ -75,8 +75,8 @@ implementation {
   void updateRoute(Route route) {
     uint16_t size = call RoutingTable.size();
     uint16_t i = 0;
-    
-    while(i < size){
+
+    while (i < size) {
       Route current_route = call RoutingTable.get(i);
 
       if (route.dest == current_route.dest) {
@@ -91,7 +91,7 @@ implementation {
   void resetRouteUpdates() {
     uint16_t size = call RoutingTable.size();
     uint16_t i = 0;
-    while(i < size){
+    while (i < size) {
       Route route = call RoutingTable.get(i);
       route.route_changed = FALSE;
       call RoutingTable.set(i, route);
@@ -125,15 +125,14 @@ implementation {
           call TriggeredEventTimer.startOneShot(rand(1000, 5000));
         }
       }
-    }
-    else if (route.TTL == 0 && route.cost == ROUTE_MAX_COST) {
+    } else if (route.TTL == 0 && route.cost == ROUTE_MAX_COST) {
       removeRoute(route.dest);
     }
   }
 
   void decrementRouteTimers() {
     uint16_t i = 0;
-    while(i < call RoutingTable.size()){
+    while (i < call RoutingTable.size()) {
       Route route = call RoutingTable.get(i);
       decrementTimer(route);
       i++;
@@ -217,9 +216,7 @@ implementation {
 
         call TriggeredEventTimer.startOneShot(rand(1000, 5000));
         continue;
-      }
-
-      else {
+      } else {
         Route existing_route = getRoute(current_route.dest);
 
         if (existing_route.next_hop == routing_packet -> src) {
@@ -252,8 +249,8 @@ implementation {
     uint16_t i = 0;
     uint16_t size = call RoutingTable.size();
 
-    while(i < size){
-            Route route = call RoutingTable.get(i);
+    while (i < size) {
+      Route route = call RoutingTable.get(i);
       uint16_t j;
 
       if (route.cost == ROUTE_MAX_COST) {
@@ -293,8 +290,7 @@ implementation {
           updateRoute(route);
           call TriggeredEventTimer.startOneShot(rand(1000, 5000));
         }
-      }
-      else {
+      } else {
         call RoutingTable.pushback(route);
         call TriggeredEventTimer.startOneShot(rand(1000, 5000));
       }
