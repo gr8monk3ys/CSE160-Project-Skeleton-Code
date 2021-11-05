@@ -146,11 +146,11 @@ def main():
     # s.ping(1, 2, "Hi");
     # s.runTime(10);
     
-    # Neighbor Discovery Test
-    # s.runTime(50);
-    # for i in range(s.numMote + 1):
-    #     s.runTime(20);
-    #     s.neighborDMP(i + 1);
+    #Neighbor Discovery Test
+    s.runTime(50);
+    for i in range(s.numMote + 1):
+        s.runTime(20);
+        s.neighborDMP(i + 1);
 
     # LinkState
     s.runTime(100);
