@@ -59,9 +59,8 @@ implementation {
 
   void removeRoute(uint16_t dest) {
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
-
-    for (i = 0; i < size; i++) {
+    uint16_t i = 0;
+    while(i < size){
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
@@ -69,15 +68,14 @@ implementation {
         return;
       }
     }
-
-    dbg(ROUTING_CHANNEL, "ERROR - Can't remove nonexistent route %d\n", dest);
+    dbg(ROUTING_CHANNEL, "Error - Can't remove nonexistent route %d\n", dest);
   }
 
   void updateRoute(Route route) {
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
-
-    for (i = 0; i < size; i++) {
+    uint16_t i = 0;
+    
+    while(i < size){
       Route current_route = call RoutingTable.get(i);
 
       if (route.dest == current_route.dest) {
@@ -85,8 +83,7 @@ implementation {
         return;
       }
     }
-
-    dbg(ROUTING_CHANNEL, "ERROR - Update attempt on nonexistent route %d\n", route.dest);
+    dbg(ROUTING_CHANNEL, "Error - Update attempt on nonexistent route %d\n", route.dest);
   }
 
   void resetRouteUpdates() {
@@ -149,7 +146,7 @@ implementation {
 
   command void LinkState.start() {
     if (call RoutingTable.size() == 0) {
-      dbg(ROUTING_CHANNEL, "ERROR - Can't route with no neighbors! Make sure to updateNeighbors first.\n");
+      dbg(ROUTING_CHANNEL, "Error - Can't route with no neighbors! Make sure to updateNeighbors first.\n");
       return;
     }
 
@@ -195,7 +192,7 @@ implementation {
       }
 
       if (current_route.cost > ROUTE_MAX_COST) {
-        dbg(ROUTING_CHANNEL, "ERROR - Invalid route cost of %d from %d\n", current_route.cost, current_route.dest);
+        dbg(ROUTING_CHANNEL, "Error - Invalid route cost of %d from %d\n", current_route.cost, current_route.dest);
         continue;
       }
 
