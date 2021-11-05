@@ -167,19 +167,13 @@ else {
 
    ///////////////////////////////
 
+   uint32_t* neighbors = call NeighborDiscovery.gatherNeighbors();
+   uint16_t numNeighbors = call NeighborDiscovery.numNeighbors();
+
    //To run neighbor discovery:
     event void NeighborTimer.fired() {
         call NeighborDiscovery.find(seq);
     }
-
-    //to run link state routing:
-     event void LinkStateTimer.fired() {
-       uint32_t* neighbors = call NeighborDiscovery.gatherNeighbors();
-       uint16_t numNeighbors = call NeighborDiscovery.numNeighbors();
-
-       call LinkState.updateNeighbors(neighbors, numNeighbors);
-       call LinkState.start();
-     }
 
      // Issues a call to all neighboring IDs of a node
      event void CommandHandler.printNeighbors() {
@@ -187,14 +181,21 @@ else {
        call NeighborDiscovery.printNeighbors();
      }
 
-     //to print the table 
-     event void CommandHandler.printRouteTable() {
-        call LinkState.printRouteTable();
+         //to run link state routing:
+     event void LinkStateTimer.fired() {
+       
+       call LinkState.updateNeighbors(neighbors, numNeighbors);
+       call LinkState.start();
      }
 
      event void CommandHandler.printLinkState(){ 
         dbg(GENERAL_CHANNEL, "printLinkState\n"); 
         }
+
+     //to print the table 
+     event void CommandHandler.printRouteTable() {
+        call LinkState.printRouteTable();
+     }
 
      event void CommandHandler.printDistanceVector() {
         call LinkState.printRouteTable();
