@@ -420,7 +420,7 @@ implementation {
 
     msg.src = TOS_NODE_ID;
     msg.TTL = 1;
-    msg.protocol = PROTOCOL_DV;
+    msg.protocol = PROTOCOL_LINKSTATE;
     msg.seq = 0; // NOTE: Change if requests are needed
 
     memset(( & msg.payload), '\0', PACKET_MAX_PAYLOAD_SIZE);

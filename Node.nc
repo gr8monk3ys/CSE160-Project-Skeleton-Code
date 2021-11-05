@@ -154,7 +154,7 @@ implementation {
       // }
 
       //Distance Vector
-      if (myMsg -> protocol == PROTOCOL_DV) {
+      if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
         call LinkState.recieve(myMsg);
 
         //REGULAR PING
