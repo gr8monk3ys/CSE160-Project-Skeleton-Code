@@ -1,7 +1,5 @@
 #include <Timer.h>
-
 #include "../../includes/route.h"
-
 #include "../../includes/packet.h"
 
 #undef min
@@ -29,18 +27,17 @@ implementation {
 
   bool inTable(uint16_t dest) {
     uint16_t size = call RoutingTable.size();
-    uint16_t i;
+    uint16_t i = 0;
     bool isInTable = FALSE;
-
-    for (i = 0; i < size; i++) {
+    while(i < size) {
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
         isInTable = TRUE;
         break;
       }
+      i++;
     }
-
     return isInTable;
   }
 
