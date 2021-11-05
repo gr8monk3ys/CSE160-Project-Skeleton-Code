@@ -32,6 +32,26 @@ void Reply(pack* msg) {
     call Sender.send(*msg, AM_BROADCAST_ADDR);
 }
 
+void displayOffProtocol(pack* msg) {
+    //checking if the protocol is of ping
+    if (msg->protocol == PROTOCOL_PING) {
+
+        dbg(NEIGHBOR_CHANNEL, "Neighbor reply from %d. Adding to neighbor list\n", msg->src);
+        call NeighborNodes.insert(msg->src, THRESHOLD);
+    }
+    //checking if the protocol is of reply
+    else if (msg->protocol == PROTOCOL_PINGREPLY) {
+
+        dbg(NEIGHBOR_CHANNEL, "Neighbor discovery from %d. Adding to list & replying...\n", msg->src);
+        call NeighborNodes.insert(msg->src, THRESHOLD);
+        //need to change ping to reply
+        Reply(msg);
+    }
+    else {
+         dbg(NEIGHBOR_CHANNEL, "Wrong Protocol Type%d\n", msg->protocol);
+    }
+}
+
 //Timer
 void decrementTimeout() {
     uint16_t i = 0;
@@ -82,26 +102,6 @@ command void NeighborDiscovery.printNeighbors() {
     }
 
     dbg(NEIGHBOR_CHANNEL, "---------------------------\n");
-}
-
-void displayOffProtocol(pack* msg) {
-    //checking if the protocol is of ping
-    if (msg->protocol == PROTOCOL_PING) {
-
-        dbg(NEIGHBOR_CHANNEL, "Neighbor reply from %d. Adding to neighbor list\n", msg->src);
-        call NeighborNodes.insert(msg->src, THRESHOLD);
-    }
-    //checking if the protocol is of reply
-    else if (msg->protocol == PROTOCOL_PINGREPLY) {
-
-        dbg(NEIGHBOR_CHANNEL, "Neighbor discovery from %d. Adding to list & replying...\n", msg->src);
-        call NeighborNodes.insert(msg->src, THRESHOLD);
-        //need to change ping to reply
-        Reply(msg);
-    }
-    else {
-         dbg(NEIGHBOR_CHANNEL, "Wrong Protocol Type%d\n", msg->protocol);
-    }
 }
 
 //we want to recieve the message:
