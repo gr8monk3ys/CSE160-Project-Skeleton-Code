@@ -137,41 +137,53 @@ def main():
     s.bootAll();
     s.addChannel(s.COMMAND_CHANNEL);
     s.addChannel(s.GENERAL_CHANNEL);
-    #s.addChannel(s.FLOODING_CHANNEL);
-    #s.addChannel(s.NEIGHBOR_CHANNEL);
-    #s.addChannel(s.ROUTING_CHANNEL);
+    s.addChannel(s.FLOODING_CHANNEL);
+    s.addChannel(s.NEIGHBOR_CHANNEL);
+    s.addChannel(s.ROUTING_CHANNEL);
+    # s.addChannel(s.TRANSPORT_CHANNEL);
 
     #Flooding Test
-    s.runTime(20);
-    s.ping(1, 2, "Hello, World");
-    s.runTime(10);
-    s.ping(1, 3, "Hi!");
-    s.runTime(20);
+    s.runTime(1);
+    s.ping(2, 3, "Hello, World");
+    s.runTime(1);
+
+    s.ping(1, 10, "Hi!");
+    s.runTime(1);
     
-    # #Neighbor Discovery Test
-    # s.runTime(50);
-    # for i in range(s.numMote + 1):
-    #     s.runTime(20);
-    #     s.neighborDMP(i + 1);
+    # Neighbor Discovery Test
+    for i in range(1, 10):
+        s.runTime(5);
+        s.neighborDMP(i);
 
-    # # LinkState
-    # s.runTime(100);
-    # for i in range(1, 10):
-    #     s.routeDMP(i);
-    #     s.runTime(5);
+    s.runTime(5);
 
-    # s.ping(2, 9, "Test");
-    # s.runTime(5);
+    s.neighborDMP(5);
+    s.runTime(5);
+
+    s.moteOff(3);
+    s.runTime(15);
+
+    s.neighborDMP(5);
+    s.runTime(5);
+
+    # LinkState Test
+    s.runTime(100);
+    for i in range(1, 10):
+        s.routeDMP(i);
+        s.runTime(5);
+
+    s.ping(2, 9, "Test");
+    s.runTime(5);
     
-    # # Test routing with invalidated path
-    # s.moteOff(3);
-    # s.runTime(100);
+    # Test routing with invalidated path
+    s.moteOff(3);
+    s.runTime(100);
 
-    # s.routeDMP(9);
-    # s.runTime(5);
+    s.routeDMP(9);
+    s.runTime(5);
 
-    # s.ping(2, 9, "Test");
-    # s.runTime(5);
+    s.ping(2, 9, "Test");
+    s.runTime(5);
 
 if __name__ == '__main__':
     main()
