@@ -80,9 +80,9 @@ implementation {
     uint16_t i;
 
     for (i = 0; i < size; i++) {
-      Route current_route = call RoutingTable.get(i);
+      Route current = call RoutingTable.get(i);
 
-      if (route.dest == current_route.dest) {
+      if (route.dest == current.dest) {
         call RoutingTable.set(i, route);
         return;
       }
@@ -118,14 +118,14 @@ implementation {
       call LinkStateTimer.startOneShot(randNum(1000, 5000));
 
       for (i = 0; i < size; i++) {
-        Route current_route = call RoutingTable.get(i);
+        Route current = call RoutingTable.get(i);
 
-        if (current_route.next_hop == route.next_hop && current_route.cost != ROUTE_MAX_COST) {
-          current_route.TTL = ROUTE_GARBAGE_COLLECT;
-          current_route.cost = ROUTE_MAX_COST;
-          current_route.route_changed = TRUE;
+        if (current.next_hop == route.next_hop && current.cost != ROUTE_MAX_COST) {
+          current.TTL = ROUTE_GARBAGE_COLLECT;
+          current.cost = ROUTE_MAX_COST;
+          current.route_changed = TRUE;
 
-          updateRoute(current_route);
+          updateRoute(current);
           call LinkStateTimer.startOneShot(randNum(1000, 5000));
         }
       }
@@ -186,72 +186,72 @@ implementation {
     uint16_t i;
 
     for (i = 0; i < routesPerPacket; i++) {
-      Route current_route;
-      memcpy( & current_route, ( & routing_packet -> payload) + i * ROUTE_SIZE, ROUTE_SIZE);
+      Route current;
+      memcpy( & current, ( & routing_packet -> payload) + i * ROUTE_SIZE, ROUTE_SIZE);
 
-      if (current_route.dest == 0) {
+      if (current.dest == 0) {
         continue;
       }
 
-      if (current_route.dest == TOS_NODE_ID) {
+      if (current.dest == TOS_NODE_ID) {
         continue;
       }
 
-      if (current_route.cost > ROUTE_MAX_COST) {
-        dbg(ROUTING_CHANNEL, "Error: Invalid route cost of %d from %d\n", current_route.cost, current_route.dest);
+      if (current.cost > ROUTE_MAX_COST) {
+        dbg(ROUTING_CHANNEL, "Error: Invalid route cost of %d from %d\n", current.cost, current.dest);
         continue;
       }
 
-      if (current_route.next_hop == TOS_NODE_ID) {
-        current_route.cost = ROUTE_MAX_COST;
+      if (current.next_hop == TOS_NODE_ID) {
+        current.cost = ROUTE_MAX_COST;
       }
 
-      current_route.cost = min(current_route.cost + 1, ROUTE_MAX_COST);
+      current.cost = min(current.cost + 1, ROUTE_MAX_COST);
 
-      if (!inTable(current_route.dest)) {
-        if (current_route.cost == ROUTE_MAX_COST) {
+      if (!inTable(current.dest)) {
+        if (current.cost == ROUTE_MAX_COST) {
           continue;
         }
 
-        current_route.dest = routing_packet -> dest;
-        current_route.next_hop = routing_packet -> src;
-        current_route.TTL = ROUTE_TIMEOUT;
-        current_route.route_changed = TRUE;
+        current.dest = routing_packet -> dest;
+        current.next_hop = routing_packet -> src;
+        current.TTL = ROUTE_TIMEOUT;
+        current.route_changed = TRUE;
 
-        call RoutingTable.pushback(current_route);
+        call RoutingTable.pushback(current);
 
         call LinkStateTimer.startOneShot(randNum(1000, 5000));
         continue;
       }
 
       else {
-        Route existing_route = getRoute(current_route.dest);
+        Route existing = getRoute(current.dest);
 
-        if (existing_route.next_hop == routing_packet -> src) {
-          existing_route.TTL = ROUTE_TIMEOUT;
+        if (existing.next_hop == routing_packet -> src) {
+          existing.TTL = ROUTE_TIMEOUT;
         }
 
-        if ((existing_route.next_hop == routing_packet -> src &&
-            existing_route.cost != current_route.cost) ||
-          existing_route.cost > current_route.cost) {
+        if ((existing.next_hop == routing_packet -> src &&
+            existing.cost != current.cost) ||
+          existing.cost > current.cost) {
 
-          existing_route.next_hop = routing_packet -> src;
-          existing_route.TTL = ROUTE_TIMEOUT;
-          existing_route.route_changed = TRUE;
+          existing.next_hop = routing_packet -> src;
+          existing.TTL = ROUTE_TIMEOUT;
+          existing.route_changed = TRUE;
 
-          if (current_route.cost == ROUTE_MAX_COST &&
-            existing_route.cost != ROUTE_MAX_COST) {
+          if (current.cost == ROUTE_MAX_COST &&
+            existing.cost != ROUTE_MAX_COST) {
 
-            existing_route.TTL = ROUTE_GARBAGE_COLLECT;
+            existing.TTL = ROUTE_GARBAGE_COLLECT;
           }
 
-          existing_route.cost = current_route.cost;
+          existing.cost = current.cost;
 
         } else {
-          existing_route.TTL = ROUTE_TIMEOUT;
+          existing.TTL = ROUTE_TIMEOUT;
         }
 
-        updateRoute(existing_route);
+        updateRoute(existing);
       }
     }
   }
@@ -295,9 +295,9 @@ implementation {
       route.route_changed = TRUE;
 
       if (inTable(route.dest)) {
-        Route existing_route = getRoute(route.dest);
+        Route existing = getRoute(route.dest);
 
-        if (existing_route.cost != route.cost) {
+        if (existing.cost != route.cost) {
           updateRoute(route);
           call LinkStateTimer.startOneShot(randNum(1000, 5000));
         }
@@ -312,7 +312,7 @@ implementation {
   event void LinkStateTimer.fired() {
     uint16_t size = call RoutingTable.size();
     uint16_t packet_index = 0;
-    uint16_t current_route;
+    uint16_t current;
     pack msg;
 
     msg.src = TOS_NODE_ID;
@@ -322,8 +322,8 @@ implementation {
 
     memset(( & msg.payload), '\0', PACKET_MAX_PAYLOAD_SIZE);
 
-    for (current_route = 0; current_route < size; current_route++) {
-      Route route = call RoutingTable.get(current_route);
+    for (current = 0; current < size; current++) {
+      Route route = call RoutingTable.get(current);
 
       msg.dest = route.dest;
 
