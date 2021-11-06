@@ -6,33 +6,36 @@
 module LinkStateP {
   provides interface LinkState;
 
-  uses interface List < Route > as RoutingTable;
+  uses interface List <Route> as RoutingTable;
   uses interface SimpleSend as Sender;
 
   uses interface Random;
 
-  uses interface Timer < TMilli > as LinkStateTimer;
-  uses interface Timer < TMilli > as RegularTimer;
+  uses interface Timer <TMilli> as LinkStateTimer;
+  uses interface Timer <TMilli> as RegularTimer;
 }
 
 implementation {
 
   uint16_t routesPerPacket = 1;
 
+  //gathering a random number:
   uint32_t randNum(uint32_t min, uint32_t max) {
     return (call Random.rand16() % (max - min + 1)) + min;
   }
 
+  //checking whether or not the route is in the table of routes
   bool inTable(uint16_t dest) {
     uint16_t size = call RoutingTable.size();
     uint16_t i;
-    bool isInTable = FALSE;
+    bool isInTable = FALSE; //false to begin with 
 
+    
     for (i = 0; i < size; i++) {
-      Route route = call RoutingTable.get(i);
+      Route route = call RoutingTable.get(i); //gathering an element from the Table to use
 
       if (route.dest == dest) {
-        isInTable = TRUE;
+        isInTable = TRUE; //based of the destination of the packet 
         break;
       }
     }
@@ -40,8 +43,9 @@ implementation {
     return isInTable;
   }
 
+    //we are going to gather the most current route based of the destination of the packet:
   Route getRoute(uint16_t dest) {
-    Route return_route;
+    Route return_current_route;
     uint16_t size = call RoutingTable.size();
     uint16_t i;
 
@@ -49,14 +53,15 @@ implementation {
       Route route = call RoutingTable.get(i);
 
       if (route.dest == dest) {
-        return_route = route;
+        return_current_route = route;
         break;
       }
     }
 
-    return return_route;
+    return return_current_route;
   }
 
+    //We are removing duplicate routes 
   void removeRoute(uint16_t dest) {
     uint16_t size = call RoutingTable.size();
     uint16_t i;
@@ -70,7 +75,7 @@ implementation {
       }
     }
 
-    dbg(ROUTING_CHANNEL, "Error: Can't remove nonexistent route %d\n", dest);
+    dbg(ROUTING_CHANNEL, "Error: Cant remove route that doesnt exist %d\n", dest);
   }
 
   void updateRoute(Route route) {
@@ -86,7 +91,7 @@ implementation {
       }
     }
 
-    dbg(ROUTING_CHANNEL, "Error: Update attempt on nonexistent route %d\n", route.dest);
+    dbg(ROUTING_CHANNEL, "Error: Route may not Exist %d\n", route.dest);
   }
 
   void resetRouteUpdates() {
@@ -164,22 +169,23 @@ implementation {
     Route route;
 
     if (!inTable(msg -> dest)) {
-      dbg(ROUTING_CHANNEL, "Can't send packet from %d to %d: no connection\n", msg -> src, msg -> dest);
+      dbg(ROUTING_CHANNEL, "Error: Can't send packet from %d to %d\n", msg -> src, msg -> dest);
       return;
     }
 
     route = getRoute(msg -> dest);
 
     if (route.cost == ROUTE_MAX_COST) {
-      dbg(ROUTING_CHANNEL, "Can't send packet from %d to %d: cost infinity\n", msg -> src, msg -> dest);
+      dbg(ROUTING_CHANNEL, "Error: Can't send packet from %d to %d\n", msg -> src, msg -> dest);
       return;
     }
 
     dbg(ROUTING_CHANNEL, "Routing Packet: src: %d, dest: %d, seq: %d, next_hop: %d, cost: %d\n", msg -> src, msg -> dest, msg -> seq, route.next_hop, route.cost);
 
-    call Sender.send( * msg, route.next_hop);
+    call Sender.send(* msg, route.next_hop);
   }
 
+    //when we recieve a packet:
   command void LinkState.recieve(pack * routing_packet) {
     uint16_t i;
 
