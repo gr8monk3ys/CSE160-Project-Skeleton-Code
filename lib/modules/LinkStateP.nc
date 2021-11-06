@@ -61,7 +61,7 @@ implementation {
     return return_current_route;
   }
 
-    //We are removing duplicate routes 
+    //We are removing duplicate routes:
   void removeRoute(uint16_t dest) {
     uint16_t size = call RoutingTable.size();
     uint16_t i;
