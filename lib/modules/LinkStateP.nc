@@ -1,8 +1,6 @@
 #include <Timer.h>
 #include "../../includes/route.h"
 #include "../../includes/packet.h"
-
-#undef min
 #define min(a, b)((a) < (b) ? (a) : (b))
 
 module LinkStateP {
