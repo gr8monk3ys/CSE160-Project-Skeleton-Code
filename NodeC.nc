@@ -51,7 +51,12 @@ implementation {
   components new TimerMilliC() as LinkStateTimer;
   Node.LinkStateTimer -> LinkStateTimer;
 
-  // components TransportP;
-  // Node.Transport -> TransportP;
+  components WindowP;
+  Node.Window -> WindowP;
+  TransportP.Window -> WindowP;
+
+  components new ListC(socket_addr_t, 256) as ListC1;
+  Node.Connections -> ListC1;
+  TransportP.Connections -> ListC1;
 
 }

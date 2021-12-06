@@ -47,7 +47,10 @@ module Node {
 
   // uses interface List<socket_addr_t> as Connections;
 
-  // uses interface Transport;
+  uses interface Transport;
+
+  uses interface Window;
+
 }
 
 implementation {
