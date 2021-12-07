@@ -50,7 +50,9 @@ module Node {
 
   uses interface Timer<TMilli> as AttemptConnection;
 
-  // uses interface List<socket_addr_t> as Connections;
+  uses interface List<socket_addr_t> as Connections;
+
+  uses interface List <Route> as RoutingTable;
 
   uses interface Transport;
 
