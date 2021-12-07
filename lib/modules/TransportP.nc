@@ -2,14 +2,15 @@
 
 #include "../../includes/socket.h"
 
-#include "../../includes/TCP_packet_t.h"
+#include "../../includes/TCP_t.h"
 
 module TransportP {
   provides interface Transport;
 
   uses interface Hashmap < socket_storage_t * > as SocketPointerMap;
 
-  uses interface Hashmap < RouterTableRow > as RouterTable;
+  //uses interface Hashmap < Route > as RoutingTable;
+  uses interface List <Route> as RoutingTable; //to access link state values for transport:
 
   uses interface List < socket_addr_t > as Connections;
 
@@ -24,10 +25,11 @@ module TransportP {
 
 implementation {
   pack sendPackage;
-  TCP_packet_t sendPayload;
+  TCP_t sendPayload;
   uint16_t seqNum = 0;
   uint8_t data[TCP_MAX_DATA_SIZE];
   uint8_t MAX_NODE_COUNT = 999;
+  Route row;
 
   socket_t assignSocketID();
 
@@ -43,19 +45,29 @@ implementation {
     return socketAddress;
   }
 
+
   void sendWithTimerPing(pack * Package);
 
-  void makePack(pack * Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCP_packet_t * payload, uint8_t length);
+  //bool inTable(uint16_t dest);
 
-  void makeTCPPack(TCP_packet_t * Package, uint8_t srcPort, uint8_t destPort, uint16_t seq, uint8_t flag, uint8_t window, uint8_t * content, uint8_t length);
+  void makePack(pack * Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCP_t * payload, uint8_t length);
+
+  void makeTCPPack(TCP_t * Package, uint8_t srcPort, uint8_t destPort, uint16_t seq, uint8_t flag, uint8_t window, uint8_t * content, uint8_t length);
+
 
   void sendWithTimerPing(pack * Package) {
     uint8_t finalDestination = Package -> dest;
     uint8_t nextDestination = finalDestination;
     uint8_t preventRun = 0;
-    RouterTableRow row;
+    uint8_t size = call RoutingTable.size();
+    uint8_t i;
 
-    while ((!call RouterTable.contains(nextDestination)) && preventRun < 999) {
+    for(i = 0; i < size; i++ ){
+    Route row = call RoutingTable.get(i);
+    }
+
+    
+    while ((!row.next_hop) && preventRun < 999) {
       nextDestination++;
 
       if (nextDestination >= MAX_NODE_COUNT) {
@@ -65,12 +77,13 @@ implementation {
       preventRun++;
     }
 
-    row = call RouterTable.get(nextDestination);
+    //row = call RoutingTable.get(nextDestination);
+    //row.next_hop
 
-    if (row.distance == 1) {
+    if (row.cost == 1) {
       call Sender.send(sendPackage, finalDestination);
     } else {
-      call Sender.send(sendPackage, row.nextNode);
+      call Sender.send(sendPackage, row.next_hop);
     }
   }
 
@@ -279,7 +292,7 @@ implementation {
 
   command error_t Transport.receive(pack * package) {
     socket_storage_t * tempSocket;
-    TCP_packet_t * payload = (TCP_packet_t * ) package -> payload;
+    TCP_t * payload = (TCP_t * ) package -> payload;
 
     socket_addr_t socketAddress = assignTempAddress(payload -> srcPort,
       payload -> destPort,
@@ -496,7 +509,7 @@ implementation {
 
   }
 
-  void makePack(pack * Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCP_packet_t * payload, uint8_t length) {
+  void makePack(pack * Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCP_t * payload, uint8_t length) {
     Package -> src = src;
     Package -> dest = dest;
     Package -> TTL = TTL;
@@ -505,7 +518,7 @@ implementation {
     memcpy(Package -> payload, payload, length);
   }
 
-  void makeTCPPack(TCP_packet_t * Package, uint8_t srcPort, uint8_t destPort, uint16_t seq, uint8_t flag, uint8_t window, uint8_t * content, uint8_t length) {
+  void makeTCPPack(TCP_t * Package, uint8_t srcPort, uint8_t destPort, uint16_t seq, uint8_t flag, uint8_t window, uint8_t * content, uint8_t length) {
     Package -> srcPort = srcPort;
     Package -> destPort = destPort;
     Package -> seq = seq;
