@@ -57,8 +57,6 @@ implementation {
   components new TimerMilliC() as packageTimerC4;
   Node.AttemptConnection -> packageTimerC4;
 
-  
-
   components TransportP;
   Node.Transport -> TransportP;
 
@@ -70,8 +68,22 @@ implementation {
   Node.Connections -> ListC1;
   TransportP.Connections -> ListC1;
 
+  //  components new HashmapC(uint8_t*, 256) as HashmapC5;
+  //   Node.Users -> HashmapC5;
+
+  components new HashmapC(window_info_t, 256) as HashmapC4;
+  WindowP.WindowInfoList -> HashmapC4;
+
   components LiveSocketListC;
   Node.LiveSocketList -> LiveSocketListC;
   TransportP.LiveSocketList -> LiveSocketListC;
+
+  components new HashmapC(socket_storage_t*, MAX_SOCKET_COUNT) as HashmapC3;
+  Node.SocketPointerMap -> HashmapC3;
+  TransportP.SocketPointerMap -> HashmapC3;
+  WindowP.SocketPointerMap -> HashmapC3;
+
+  components RandomC;
+  TransportP.Random -> RandomC;
 
 }
