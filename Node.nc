@@ -18,7 +18,7 @@
 
 #include "includes/channels.h"
 
-#include "includes/TCP_packet_t.h"
+#include "includes/TCP_t.h"
 
 module Node {
   uses interface Boot;
@@ -52,7 +52,7 @@ module Node {
 
   uses interface List<socket_addr_t> as Connections;
 
-  uses interface List <Route> as RoutingTable;
+  uses interface List <Route> as RoutingTable; //to access link state values for transport:
 
   uses interface Transport;
 
@@ -218,7 +218,7 @@ implementation {
     call LinkState.send( & sendPackage);
   }
 
-  event void CommandHandler.ping(uint16_t destination, uint8_t * payload) {}
+  //event void CommandHandler.ping(uint16_t destination, uint8_t * payload) {}
 
   void sendACKMessage(uint16_t origin, uint8_t arrivedAtDestination) {
 
