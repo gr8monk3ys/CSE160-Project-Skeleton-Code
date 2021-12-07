@@ -57,6 +57,7 @@ module Node {
 implementation {
 
   pack sendPackage;
+  pack ackPackage;
   //uint16_t seq = 1;
   uint16_t current_seq = 1;
 
@@ -64,6 +65,9 @@ implementation {
   void makePack(pack * Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t * payload, uint8_t length);
   void pingHandler(pack * msg);
   uint32_t randNum(uint32_t min, uint32_t max);
+  //void sendWithTimerPing(pack *Package);
+  uint16_t ignoreSelf(uint16_t destination);
+  uint16_t sendInitial(uint16_t initial);
 
   // Gets called for initial processes
   event void Boot.booted() {
@@ -109,13 +113,12 @@ implementation {
     //dbg(GENERAL_CHANNEL, "Packet Received\n");
 
     if (len == sizeof(pack)) {
-      pack * myMsg = (pack * ) payload;
+      pack * myMsg = (pack *) payload;
 
       // Check TTL
       if (myMsg -> TTL-- == 0) {
         return msg;
       }
-      for transport protocol
       if (myMsg -> protocol == PROTOCOL_TCP) {
         if (myMsg -> dest == TOS_NODE_ID) {
           dbg(NEIGHBOR_CHANNEL, "Packet recieved from: %i\n", myMsg -> src);
@@ -126,7 +129,7 @@ implementation {
         myMsg -> TTL = myMsg -> TTL - 1;
 
         if (myMsg -> TTL > 0) {
-          makePack( & sendPackage,
+          makePack(&sendPackage,
             TOS_NODE_ID,
             myMsg -> dest,
             myMsg -> TTL,
@@ -134,6 +137,8 @@ implementation {
             myMsg -> seq,
             myMsg -> payload,
             PACKET_MAX_PAYLOAD_SIZE);
+
+          //sendWithTimerPing(&sendPackage);
 
           return msg;
         }
@@ -209,7 +214,7 @@ implementation {
 
     dbg(GENERAL_CHANNEL, "SENDING FROM: %i to %i\n", TOS_NODE_ID, origin);
 
-    makePack( & ackPackage,
+    makePack( &ackPackage,
       TOS_NODE_ID,
       origin,
       500,
