@@ -51,6 +51,17 @@ implementation {
   components new TimerMilliC() as LinkStateTimer;
   Node.LinkStateTimer -> LinkStateTimer;
 
+  components new TimerMilliC() as packageTimerC3;
+  Node.ClientDataTimer -> packageTimerC3;
+
+  components new TimerMilliC() as packageTimerC4;
+  Node.AttemptConnection -> packageTimerC4;
+
+  
+
+  components TransportP;
+  Node.Transport -> TransportP;
+
   components WindowP;
   Node.Window -> WindowP;
   TransportP.Window -> WindowP;
@@ -58,5 +69,9 @@ implementation {
   components new ListC(socket_addr_t, 256) as ListC1;
   Node.Connections -> ListC1;
   TransportP.Connections -> ListC1;
+
+  components LiveSocketListC;
+  Node.LiveSocketList -> LiveSocketListC;
+  TransportP.LiveSocketList -> LiveSocketListC;
 
 }
