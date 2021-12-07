@@ -60,6 +60,9 @@ implementation {
   components TransportP;
   Node.Transport -> TransportP;
 
+  components TransportC;
+  Node.Transport -> TransportC;
+
   components WindowP;
   Node.Window -> WindowP;
   TransportP.Window -> WindowP;
@@ -71,7 +74,7 @@ implementation {
   //  components new HashmapC(uint8_t*, 256) as HashmapC5;
   //   Node.Users -> HashmapC5;
 
-  components new HashmapC(window_info_t, 256) as HashmapC4;
+  components new HashmapC(window_t, 256) as HashmapC4;
   WindowP.WindowInfoList -> HashmapC4;
 
   components LiveSocketListC;
@@ -83,7 +86,7 @@ implementation {
   TransportP.SocketPointerMap -> HashmapC3;
   WindowP.SocketPointerMap -> HashmapC3;
 
-  components RandomC;
-  TransportP.Random -> RandomC;
+  // components RandomC;
+  // TransportP.Random -> RandomC;
 
 }

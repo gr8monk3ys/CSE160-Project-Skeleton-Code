@@ -13,6 +13,8 @@ class TestSim:
     CMD_PING = 0
     CMD_NEIGHBOR_DUMP = 1
     CMD_ROUTE_DUMP=3
+    CMD_TEST_CLIENT=4
+    CMD_TEST_SERVER=5
 
     # CHANNELS - see includes/channels.h
     COMMAND_CHANNEL="command";
@@ -125,6 +127,13 @@ class TestSim:
     def routeDMP(self, destination):
         self.sendCMD(self.CMD_ROUTE_DUMP, destination, "routing command");
 
+    def setTestClient(self, source, destination, sourcePort, destinationPort, msg):
+        self.sendCMD(self.CMD_TEST_CLIENT, source, "{0}{1}{2}{3}".format(chr(destination),chr(sourcePort),chr(destinationPort),msg));
+
+    def setTestServer(self, source, port):
+        self.sendCMD(self.CMD_TEST_SERVER, source, "{0}".format(chr(port)))
+
+
     def addChannel(self, channelName, out=sys.stdout):
         print ('Adding Channel', channelName);
         self.t.addChannel(channelName, out);
@@ -132,14 +141,15 @@ class TestSim:
 def main():
     s = TestSim();
     s.runTime(10);
-    s.loadTopo("long_line.topo");
+    # s.loadTopo("long_line.topo");
+    s.loadTopo("example.topo");
     s.loadNoise("no_noise.txt");
     s.bootAll();
-    s.addChannel(s.COMMAND_CHANNEL);
-    s.addChannel(s.GENERAL_CHANNEL);
-    # s.addChannel(s.FLOODING_CHANNEL);
-    # s.addChannel(s.NEIGHBOR_CHANNEL);
-    s.addChannel(s.ROUTING_CHANNEL);
+    # s.addChannel(s.COMMAND_CHANNEL);
+    # s.addChannel(s.GENERAL_CHANNEL);
+    # # s.addChannel(s.FLOODING_CHANNEL);
+    # # s.addChannel(s.NEIGHBOR_CHANNEL);
+    # s.addChannel(s.ROUTING_CHANNEL);
     # s.addChannel(s.TRANSPORT_CHANNEL);
 
     #Flooding Test
@@ -167,13 +177,13 @@ def main():
     # s.runTime(5);
 
     # LinkState Test
-    s.runTime(100);
-    for i in range(1, 10):
-        s.routeDMP(i);
-        s.runTime(5);
+    # s.runTime(100);
+    # for i in range(1, 10):
+    #     s.routeDMP(i);
+    #     s.runTime(5);
 
-    s.ping(2, 9, "Test");
-    s.runTime(5);
+    # s.ping(2, 9, "Test");
+    # s.runTime(5);
     
     # # Test routing with invalidated path
     # s.moteOff(3);
@@ -185,5 +195,20 @@ def main():
     # s.ping(2, 9, "Test");
     # s.runTime(5);
 
+    #transport:
+    s.addChannel(s.COMMAND_CHANNEL);
+    s.addChannel(s.GENERAL_CHANNEL);
+    s.addChannel(s.NEIGHBOR_CHANNEL);
+    s.addChannel(s.TRANSPORT_CHANNEL);
+
+    # After sending a ping, simulate a little to prevent collision.
+
+    s.runTime(300);
+    s.setTestServer(2,20);
+    s.runTime(60);
+
+    s.setTestClient(3, 2, 20, 21, 'ABC');
+    s.runTime(1);
+    s.runTime(1000);
 if __name__ == '__main__':
     main()

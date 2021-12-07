@@ -12,12 +12,12 @@ enum {
 };
 
 typedef struct TCP_t {
-    uint16_t srcPort;
-    uint16_t destPort;
-    uint16_t seq;
-    uint8_t flag;
-    uint8_t window;
-    uint8_t data[TCP_MAX_DATA_SIZE];
+    nx_uint16_t destPort;
+    nx_uint16_t srcPort;
+    nx_uint16_t seq;
+    nx_uint8_t flag;
+    nx_uint8_t window;
+    nx_uint8_t data[TCP_MAX_DATA_SIZE];
 } TCP_t;
 
 #endif
