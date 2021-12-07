@@ -1,6 +1,6 @@
-#include "../../packet.h"
+#include "../../includes/packet.h"
 #include "../../includes/socket.h"
-#include "../../includes/socket_t.h"
+//#include "../../includes/socket_t.h"
 
 /**
  * The Transport interface handles sockets and is a layer of abstraction
@@ -70,7 +70,7 @@ interface Transport{
     * @return uint16_t - return the amount of data you are able to write
     *    from the pass buffer. This may be shorter then bufflen
     */
-   command uint16_t write(socket_t fd, uint8_t *buff, uint16_t bufflen);
+   command uint16_t write(socket_t fd, uint8_t state);
 
    /**
     * This will pass the packet so you can handle it internally. 
@@ -97,7 +97,7 @@ interface Transport{
     * @return uint16_t - return the amount of data you are able to read
     *    from the pass buffer. This may be shorter then bufflen
     */
-   command uint16_t read(socket_t fd, uint8_t *buff, uint16_t bufflen);
+   command uint16_t read(socket_t fd, uint8_t flag);
 
    /**
     * Attempts a connection to an address.
