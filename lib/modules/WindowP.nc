@@ -17,8 +17,8 @@ window_info_t generateNewWindowDetails(uint16_t size, uint16_t prevValue) {
    return info;
 }
 
-module WindowManagerP{
-   provides interface WindowManager;
+module WindowP{
+   provides interface Window;
 
    uses interface Hashmap<socket_storage_t*> as SocketPointerMap;
    uses interface Hashmap<window_info_t> as WindowInfoList;
@@ -29,7 +29,7 @@ implementation{
    socket_storage_t * socket;
 
 // initialize buffer by creating the window information
-command void WindowManager.init(socket_t fd) {
+command void Window.init(socket_t fd) {
    window_info_t info;
 
    uint16_t BUFFER_DATA_CAP = SOCKET_SEND_BUFFER_SIZE / 2;
@@ -109,7 +109,7 @@ command void WindowManager.init(socket_t fd) {
 }
 
 // get an ACK
-command uint8_t WindowManager.receiveACK(socket_t fd, TCP_packet_t* payload) {
+command uint8_t Window.receiveACK(socket_t fd, TCP_packet_t* payload) {
    window_info_t info;
 
    if (call SocketPointerMap.contains(fd)) {
@@ -131,7 +131,7 @@ command uint8_t WindowManager.receiveACK(socket_t fd, TCP_packet_t* payload) {
 }
 
 // get data
-command error_t WindowManager.receiveData(socket_t fd, TCP_packet_t* payload) {
+command error_t Window.receiveData(socket_t fd, TCP_packet_t* payload) {
    int i;
    window_info_t info;
    uint8_t amountReceived;
@@ -164,7 +164,7 @@ command error_t WindowManager.receiveData(socket_t fd, TCP_packet_t* payload) {
    }
 }
 
-command error_t WindowManager.initData(socket_t fd, uint8_t* data, uint16_t* seq) {
+command error_t Window.initData(socket_t fd, uint8_t* data, uint16_t* seq) {
      int curIndex;
      int EffectiveWindow;
      uint8_t dataLength;
@@ -231,7 +231,7 @@ call WindowInfoList.insert(fd, info);
 return SUCCESS;
 }
 
-command void WindowManager.readData(socket_t fd) {
+command void Window.readData(socket_t fd) {
 
    int bytesInBuffer;
    uint16_t tempBuff1[SOCKET_RECEIVE_BUFFER_SIZE];
@@ -275,7 +275,7 @@ command void WindowManager.readData(socket_t fd) {
    }
 }
 
-command void WindowManager.setWindowInfo(socket_t fd, uint16_t size) {
+command void Window.setWindowInfo(socket_t fd, uint16_t size) {
    window_info_t temp = generateNewWindowDetails(size, 0);
    call WindowInfoList.insert(fd, temp);
 }

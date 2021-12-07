@@ -46,11 +46,19 @@ module Node {
 
   uses interface LinkState;
 
+  uses interface Timer<TMilli> as ClientDataTimer;
+
+  uses interface Timer<TMilli> as AttemptConnection;
+
   // uses interface List<socket_addr_t> as Connections;
 
   uses interface Transport;
 
   uses interface Window;
+
+  uses interface LiveSocketList;
+
+  uses interface Hashmap<socket_storage_t*> as SocketPointerMap;
 
 }
 
@@ -290,7 +298,7 @@ implementation {
 
       if (tempSocket -> state == SOCK_ESTABLISHED) {
         // read data
-        call WindowManager.readData(socketKeys[i]);
+        call Window.readData(socketKeys[i]);
       }
     }
   }
@@ -311,7 +319,7 @@ implementation {
 
     call Transport.bind(fd, & socketAddress);
     call Transport.connect(fd, & socketAddress);
-    call WindowManager.setWindowInfo(fd, transferSize[0]);
+    call Window.setWindowInfo(fd, transferSize[0]);
     call ClientDataTimer.startPeriodic(2500);
   }
 
@@ -326,7 +334,7 @@ implementation {
       if (tempSocket -> state == SOCK_ESTABLISHED) {
         dbg(NEIGHBOR_CHANNEL, "Connection established - Sending DATA\n");
 
-        call WindowManager.init(socketKeys[i]);
+        call Window.init(socketKeys[i]);
         call Transport.write(socketKeys[i], DATA);
 
       } else if (tempSocket -> state == SOCK_SYN_SENT) {

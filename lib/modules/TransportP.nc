@@ -17,7 +17,7 @@ module TransportP {
 
   uses interface LiveSocketList;
 
-  uses interface WindowManager;
+  uses interface Window;
 
   uses interface Random;
 }
@@ -231,7 +231,7 @@ implementation {
 
       switch (flag) {
       case DATA:
-        if (call WindowManager.initData(fd, & data, & tempSeqNum) == FAIL) {
+        if (call Window.initData(fd, & data, & tempSeqNum) == FAIL) {
           return;
         }
 
@@ -348,7 +348,7 @@ implementation {
 
       if (socketLocation != -1 && socketLocation != 255) {
 
-        if (call WindowManager.receiveACK(call LiveSocketList.getFd(socketLocation), payload) == FIN) {
+        if (call Window.receiveACK(call LiveSocketList.getFd(socketLocation), payload) == FIN) {
           tempSocket = call LiveSocketList.getStore(socketLocation);
           tempSocket -> state = SOCK_FIN_WAIT;
 
@@ -385,7 +385,7 @@ implementation {
       socketLocation = call LiveSocketList.search( & socketAddress, SOCK_ESTABLISHED);
 
       if (socketLocation != -1 && socketLocation != 255) {
-        call WindowManager.receiveData(call LiveSocketList.getFd(socketLocation), payload);
+        call Window.receiveData(call LiveSocketList.getFd(socketLocation), payload);
 
         call Transport.write(call LiveSocketList.getFd(socketLocation), ACK);
         return SUCCESS;
@@ -414,7 +414,7 @@ implementation {
         if (tempSocket -> lastByteRec >= payload -> seq) {
           tempSocket -> state = SOCK_CLOSE_WAIT;
 
-          call WindowManager.readData(call LiveSocketList.getFd(socketLocation));
+          call Window.readData(call LiveSocketList.getFd(socketLocation));
           // send a fin_ack to close the client side connection
           call Transport.write(call LiveSocketList.getFd(socketLocation), FIN_ACK);
         }
