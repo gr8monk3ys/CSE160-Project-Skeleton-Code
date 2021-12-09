@@ -65,9 +65,8 @@ implementation {
     for(i = 0; i < size; i++ ){
     Route row = call RoutingTable.get(i);
     }
-
     
-    while ((!row.next_hop) && preventRun < 999) {
+    while ((!row.next_hop == finalDestination ) && preventRun < 999) {
       nextDestination++;
 
       if (nextDestination >= MAX_NODE_COUNT) {
@@ -76,10 +75,11 @@ implementation {
 
       preventRun++;
     }
+    
 
-    //row = call RoutingTable.get(nextDestination);
+    row = call RoutingTable.get(nextDestination);
+    
     //row.next_hop
-
     if (row.cost == 1) {
       call Sender.send(sendPackage, finalDestination);
     } else {
@@ -104,7 +104,7 @@ implementation {
   command error_t Transport.connect(socket_t fd, socket_addr_t * addr) {
     socket_storage_t * temp_socket;
 
-    dbg(NEIGHBOR_CHANNEL, "Attempting to connect to socket-%d\n", fd);
+    dbg(TRANSPORT_CHANNEL, "Attempting to connect to socket-%d\n", fd);
 
     if (call SocketPointerMap.contains(fd)) {
       temp_socket = call SocketPointerMap.get(fd);
@@ -132,7 +132,7 @@ implementation {
       temp_socket -> state = SOCK_SYN_SENT;
       return SUCCESS;
     }
-    dbg(NEIGHBOR_CHANNEL, "Error attempting connection\n");
+    dbg(TRANSPORT_CHANNEL, "Error attempting connection\n");
     return FAIL;
   }
 
@@ -162,7 +162,7 @@ implementation {
       call SocketPointerMap.insert(fd, call LiveSocketList.getStore(socketLocation));
     }
 
-    dbg(NEIGHBOR_CHANNEL, "New socket: %d\n", fd);
+    dbg(TRANSPORT_CHANNEL, "New socket: %d\n", fd);
 
     return fd;
   }
@@ -177,11 +177,11 @@ implementation {
       tempSocketAddress -> sockAddr.srcAddr = socketAddress -> srcAddr;
       tempSocketAddress -> sockAddr.destAddr = socketAddress -> destAddr;
 
-      dbg(NEIGHBOR_CHANNEL, "Bounded client to server!\n");
+      dbg(TRANSPORT_CHANNEL, "Bounded client to server!\n");
       return SUCCESS;
     }
 
-    dbg(NEIGHBOR_CHANNEL, "Error: can't bind!\n");
+    dbg(TRANSPORT_CHANNEL, "Error: can't bind!\n");
     return FAIL;
   }
 
@@ -191,7 +191,7 @@ implementation {
 
     socket_addr_t newConnection = call Connections.popfront();
     socket_addr_t socketAddress;
-    dbg(NEIGHBOR_CHANNEL, "Connection accepted!\n");
+    dbg(TRANSPORT_CHANNEL, "Connection accepted!\n");
     fd = call Transport.socket();
 
     if (fd != NULL_SOCKET) {
@@ -303,7 +303,7 @@ implementation {
 
     switch (payload -> flag) {
     case SYN:
-      dbg(NEIGHBOR_CHANNEL, "SYN packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
+      dbg(TRANSPORT_CHANNEL, "SYN packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
 
       socketLocation = call LiveSocketList.checkIfPortIsListening(payload -> destPort);
 
@@ -313,12 +313,12 @@ implementation {
         return SUCCESS;
       }
 
-      dbg(NEIGHBOR_CHANNEL, "Could not find listening port\n");
+      dbg(TRANSPORT_CHANNEL, "Could not find listening port\n");
       return FAIL;
       break;
 
     case SYN_ACK:
-      dbg(NEIGHBOR_CHANNEL, "SYN_ACK packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
+      dbg(TRANSPORT_CHANNEL, "SYN_ACK packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
 
       socketLocation = call LiveSocketList.search( & socketAddress, SOCK_SYN_SENT);
 
@@ -355,7 +355,7 @@ implementation {
       break;
 
     case ACK:
-      dbg(NEIGHBOR_CHANNEL, "ACK packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
+      dbg(TRANSPORT_CHANNEL, "ACK packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
 
       socketLocation = call LiveSocketList.search( & socketAddress, SOCK_ESTABLISHED);
 
@@ -377,7 +377,7 @@ implementation {
         tempSocket = call LiveSocketList.getStore(socketLocation);
         tempSocket -> state = SOCK_ESTABLISHED;
 
-        dbg(NEIGHBOR_CHANNEL, "Connection established with node://%d:%d\n", package -> src, payload -> destPort);
+        dbg(TRANSPORT_CHANNEL, "Connection established with node://%d:%d\n", package -> src, payload -> destPort);
         return SUCCESS;
       }
 
@@ -387,13 +387,13 @@ implementation {
         return SUCCESS;
       }
 
-      dbg(NEIGHBOR_CHANNEL, "Error: No connection\n");
+      dbg(TRANSPORT_CHANNEL, "Error: No connection\n");
       return FAIL;
 
       break;
 
     case DATA:
-      dbg(NEIGHBOR_CHANNEL, "DATA packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
+      dbg(TRANSPORT_CHANNEL, "DATA packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
 
       socketLocation = call LiveSocketList.search( & socketAddress, SOCK_ESTABLISHED);
 
@@ -416,7 +416,7 @@ implementation {
       break;
 
     case FIN:
-      dbg(NEIGHBOR_CHANNEL, "FIN packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
+      dbg(TRANSPORT_CHANNEL, "FIN packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
 
       // there are 3 cases we have for FIN, if the socket is established, if the socket is waiting to close, and if the socket is closed
 
@@ -441,7 +441,7 @@ implementation {
         tempSocket = call LiveSocketList.getStore(socketLocation);
         tempSocket -> state = SOCK_CLOSED;
 
-        dbg(NEIGHBOR_CHANNEL, "Connection Closed\n");
+        dbg(TRANSPORT_CHANNEL, "Connection Closed\n");
         return SUCCESS;
       }
 
@@ -455,12 +455,12 @@ implementation {
         return SUCCESS;
       }
 
-      dbg(NEIGHBOR_CHANNEL, "Error: connection failed\n");
+      dbg(TRANSPORT_CHANNEL, "Error: connection failed\n");
       return FAIL;
       break;
 
     case FIN_ACK:
-      dbg(NEIGHBOR_CHANNEL, "FIN_ACK packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
+      dbg(TRANSPORT_CHANNEL, "FIN_ACK packet arrived from node://%d:%d\n", package -> src, payload -> destPort);
 
       // check if the socket is waiting to end
       socketLocation = call LiveSocketList.search( & socketAddress, SOCK_FIN_WAIT);
@@ -469,11 +469,11 @@ implementation {
         call Transport.write(call LiveSocketList.getFd(socketLocation), FIN);
         tempSocket = call LiveSocketList.getStore(socketLocation);
         tempSocket -> state = SOCK_CLOSED;
-        dbg(NEIGHBOR_CHANNEL, "Connection Closed\n");
+        dbg(TRANSPORT_CHANNEL, "Connection Closed\n");
         return SUCCESS;
       }
 
-      dbg(NEIGHBOR_CHANNEL, "Error: connection failed\n");
+      dbg(TRANSPORT_CHANNEL, "Error: connection failed\n");
       return FAIL;
 
       break;
@@ -498,9 +498,11 @@ implementation {
       socket = call SocketPointerMap.get(fd);
       socket -> state = SOCK_LISTEN;
 
+      dbg(TRANSPORT_CHANNEL, "Socket found!\n");
+
       return SUCCESS;
     } else {
-      dbg(NEIGHBOR_CHANNEL, "Socket not found\n");
+      dbg(TRANSPORT_CHANNEL, "Socket not found\n");
       return FAIL;
     }
   }

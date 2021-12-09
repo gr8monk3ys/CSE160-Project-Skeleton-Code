@@ -26,4 +26,5 @@ interface List<t>{
 	command void set(uint16_t position, t input);
 	command void remove(uint16_t position);
 	command void clear();
+	//command void contains(uint16_t element);
 }

@@ -143,6 +143,7 @@ implementation {
 
         myMsg -> TTL = myMsg -> TTL - 1;
 
+        //For Transport?
         if (myMsg -> TTL > 0) {
           makePack( & sendPackage,
             TOS_NODE_ID,
@@ -157,7 +158,7 @@ implementation {
 
           return msg;
         }
-        dbg(NEIGHBOR_CHANNEL, "TCP Timed out");
+        dbg(GENERAL_CHANNEL, "TCP Timed out");
         return msg;
       }
 
@@ -172,7 +173,7 @@ implementation {
         return msg;
       }
 
-      //Distance Vector
+      //Distance Vector -- LinkState Routing
       if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
         call LinkState.recieve(myMsg);
 
@@ -265,7 +266,7 @@ implementation {
     socket_t fd = call Transport.socket();
     socket_addr_t socketAddress;
 
-    dbg(NEIGHBOR_CHANNEL, "Init server at port-%d\n", port);
+    dbg(TRANSPORT_CHANNEL, "Init server at port-%d\n", port);
 
     if (fd != NULL_SOCKET) {
       socketAddress.srcAddr = TOS_NODE_ID;
@@ -274,18 +275,18 @@ implementation {
       socketAddress.destPort = 0;
 
       if (call Transport.bind(fd, & socketAddress) == SUCCESS) {
-        dbg(NEIGHBOR_CHANNEL, "socket %d binded to port-%d\n", fd, port);
+        dbg(TRANSPORT_CHANNEL, "socket %d binded to port-%d\n", fd, port);
         call Transport.listen(fd);
         call AttemptConnection.startPeriodic(1000);
 
         return;
       }
 
-      dbg(NEIGHBOR_CHANNEL, "Server could not be set up\n");
+      dbg(TRANSPORT_CHANNEL, "Server could not be set up\n");
       return;
     }
 
-    dbg(NEIGHBOR_CHANNEL, "Server could not be set up\n");
+    dbg(TRANSPORT_CHANNEL, "Server could not be set up\n");
     return;
   }
 
@@ -317,7 +318,7 @@ implementation {
 
     uint16_t * transferSize = (uint16_t * ) transfer;
 
-    dbg(NEIGHBOR_CHANNEL, "Init client at port-%d headed to node://%d:%d with content '%s'\n", srcPort, dest, destPort, transfer);
+    dbg(TRANSPORT_CHANNEL, "Init client at port-%d headed to node://%d:%d with content '%s'\n", srcPort, dest, destPort, transfer);
 
     socketAddress.srcAddr = TOS_NODE_ID;
     socketAddress.srcPort = srcPort;
@@ -339,14 +340,14 @@ implementation {
       tempSocket = call SocketPointerMap.get(socketKeys[i]);
 
       if (tempSocket -> state == SOCK_ESTABLISHED) {
-        dbg(NEIGHBOR_CHANNEL, "Connection established - Sending DATA\n");
+        dbg(TRANSPORT_CHANNEL, "Connection established - Sending DATA\n");
 
         call Window.init(socketKeys[i]);
         call Transport.write(socketKeys[i], DATA);
 
       } else if (tempSocket -> state == SOCK_SYN_SENT) {
         if (tempSocket -> timeout == 0) {
-          dbg(NEIGHBOR_CHANNEL, "Connection Failed - Retrying\n");
+          dbg(TRANSPORT_CHANNEL, "Connection Failed - Retrying\n");
 
           call Transport.connect(socketKeys[i], & tempSocket -> sockAddr);
           tempSocket -> timeout = 6;
@@ -357,7 +358,7 @@ implementation {
 
       } else if (tempSocket -> state == SOCK_FIN_WAIT) {
         if (tempSocket -> timeout == 0) {
-          dbg(NEIGHBOR_CHANNEL, "Connection Failed - Retrying\n");
+          dbg(TRANSPORT_CHANNEL, "Connection Failed - Retrying\n");
 
           call Transport.write(socketKeys[i], FIN);
 
@@ -392,7 +393,7 @@ implementation {
     socket_t fd = call Transport.socket();
     socket_addr_t socketAddress;
 
-    dbg(NEIGHBOR_CHANNEL, "Init server at port-%d\n", port);
+    dbg(TRANSPORT_CHANNEL, "Init server at port-%d\n", DEFAULT_CHAT_PORT);
 
     if (fd != NULL_SOCKET) {
       socketAddress.srcAddr = TOS_NODE_ID;
@@ -401,14 +402,14 @@ implementation {
       socketAddress.destPort = 0;
 
       if (call Transport.bind(fd, & socketAddress) == SUCCESS) {
-        dbg(NEIGHBOR_CHANNEL, "Chat server booted!\n");
+        dbg(TRANSPORT_CHANNEL, "Chat server booted!\n");
         call Transport.listen(fd);
         call AttemptConnection.startPeriodic(1000);
 
         return;
       }
 
-      dbg(NEIGHBOR_CHANNEL, "Server could not be set up\n");
+      dbg(TRANSPORT_CHANNEL, "Server could not be set up\n");
       return;
     }
   }
@@ -427,7 +428,7 @@ implementation {
 
     call Transport.bind(fd, & socketAddress);
     call Transport.connect(fd, & socketAddress);
-    call WindowManager.setWindowInfo(fd, transferSize[0]);
+    call Window.setWindowInfo(fd, transferSize[0]);
     call ClientDataTimer.startPeriodic(2500);
     return;
   }
@@ -446,7 +447,7 @@ implementation {
 
     call Transport.bind(fd, & socketAddress);
     call Transport.connect(fd, & socketAddress);
-    call WindowManager.setWindowInfo(fd, transferSize[0]);
+    call Window.setWindowInfo(fd, transferSize[0]);
     call ClientDataTimer.startPeriodic(2500);
     return;
   }

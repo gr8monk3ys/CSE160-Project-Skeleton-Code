@@ -137,8 +137,8 @@ class TestSim:
     def setTestServer(self, source, port):
         self.sendCMD(self.CMD_TEST_SERVER, source, "{0}".format(chr(port)))
 
-    def setTestServer(self, source):
-        self.sendCMD(self.CMD_START_CHAT_SERVER, source)
+    def startChatServer(self, source):
+        self.sendCMD(self.CMD_START_CHAT_SERVER, source, "chat server")
 
     def hello(self, source, username, port):
         self.sendCMD(self.CMD_HELLO, source, "{0}{1}".format(chr(username), port))
@@ -214,34 +214,34 @@ def main():
     # Transport Test
     s.addChannel(s.COMMAND_CHANNEL);
     s.addChannel(s.GENERAL_CHANNEL);
-    s.addChannel(s.NEIGHBOR_CHANNEL);
+    #s.addChannel(s.NEIGHBOR_CHANNEL);
     s.addChannel(s.TRANSPORT_CHANNEL);
 
     # After sending a ping, simulate a little to prevent collision.
 
-    s.runTime(300);
-    s.setTestServer(2,20);
-    s.runTime(60);
+    s.runTime(250);
+    s.setTestServer(2,20); #port 20
+    s.runTime(100);
 
     s.setTestClient(3, 2, 20, 21, 'ABC');
-    s.runTime(1);
-    s.runTime(1000);
+    #s.runTime(1);
+    s.runTime(500);
 
-    # Chat server Test
-    s.startChatServer();
-    s.runTime(100);
-    s.hello('joe');
-    s.runTime(250);
-    s.hello('blow');
-    s.runTime(250);
-    s.hello('schmo');
-    s.runTime(250);
-    s.hello('joe');
-    s.runTime(250);
-    s.whisper('joe', 'Hi Joe');
-    s.runTime(250);
-    s.msg('Hi Everyone!');
-    s.runTime(250);
+    # # Chat server Test
+    # s.startChatServer();
+    # s.runTime(100);
+    # s.hello('joe');
+    # s.runTime(250);
+    # s.hello('blow');
+    # s.runTime(250);
+    # s.hello('schmo');
+    # s.runTime(250);
+    # s.hello('joe');
+    # s.runTime(250);
+    # s.whisper('joe', 'Hi Joe');
+    # s.runTime(250);
+    # s.msg('Hi Everyone!');
+    # s.runTime(250);
 
 if __name__ == '__main__':
     main()

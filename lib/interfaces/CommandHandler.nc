@@ -10,10 +10,10 @@ interface CommandHandler{
    event void setTestClient(uint8_t dest, uint8_t srcPort, uint8_t destPort, uint8_t *transfer);
    event void setTestServer(uint8_t port);
    event void stopTestClient(uint8_t dest, uint8_t srcPort, uint8_t destPort);
-   event void setAppServer();
+   //event void setAppServer();
    event void setAppClient();
    event void startChatServer();
-   event void hello(uint8_t *username, uint8_t port);
-   event void msg(uint8_t *message);
+   event void hello(uint8_t *username);
+   //event void msg(uint8_t *message);
    event void whisper(uint8_t *username, uint8_t *message);
 }

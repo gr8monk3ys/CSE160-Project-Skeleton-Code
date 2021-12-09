@@ -91,7 +91,8 @@ implementation {
 
       case CMD_HELLO:
         dbg(COMMAND_CHANNEL, "Command Type: Hello\n");
-        signal CommandHandler.hello(buff[0], buff[1]);
+        //signal CommandHandler.hello(buff[0], buff[1]);
+        signal CommandHandler.hello(buff[0]);
         break;
 
       case CMD_MSG:
@@ -101,7 +102,8 @@ implementation {
 
       case CMD_WHISPER:
         dbg(COMMAND_CHANNEL, "Command Type: Whistper\n");
-        signal CommandHandler.hello(buff[0], buff[1]);
+        //signal CommandHandler.hello(buff[0], buff[1]);
+        signal CommandHandler.hello(buff[0]);
         break;
 
       default:

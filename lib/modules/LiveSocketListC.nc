@@ -28,7 +28,7 @@ implementation {
 
        socketList[socketCount] = createNewSocket(TRUE, fd, socket);
 
-       dbg(NEIGHBOR_CHANNEL,"socketLocation://%d\n", socketCount);
+       dbg(TRANSPORT_CHANNEL, "socketLocation://%d\n", socketCount);
 
        return socketCount;
    }

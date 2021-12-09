@@ -111,4 +111,18 @@ implementation{
 			call List.popback();
 		}
 	}
+
+	// 	//to find a value in a list
+	// command bool List.contains(uint16_t element){
+	// 	uint16_t i;
+
+	// 	for (i = 0; i <= call List.size(); i++) {
+	// 		if(container[element] == container[i]){
+	// 			return TRUE;
+	// 			break;
+	// 		}
+	// 	}
+	// 	return FALSE
+	// }
+	
 }
