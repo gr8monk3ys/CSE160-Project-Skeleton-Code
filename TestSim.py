@@ -11,10 +11,14 @@ class TestSim:
     moteids=[]
     # COMMAND TYPES
     CMD_PING = 0
-    CMD_NEIGHBOR_DUMP = 1
+    CMD_NEIGHBOR_DUMP=1
     CMD_ROUTE_DUMP=3
     CMD_TEST_CLIENT=4
     CMD_TEST_SERVER=5
+    CMD_START_CHAT_SERVER=10
+    CMD_MSG=11
+    CMD_HELLO=12
+    CMD_WHISPER=13
 
     # CHANNELS - see includes/channels.h
     COMMAND_CHANNEL="command";
@@ -133,6 +137,18 @@ class TestSim:
     def setTestServer(self, source, port):
         self.sendCMD(self.CMD_TEST_SERVER, source, "{0}".format(chr(port)))
 
+    def setTestServer(self, source):
+        self.sendCMD(self.CMD_START_CHAT_SERVER, source)
+
+    def hello(self, source, username, port):
+        self.sendCMD(self.CMD_HELLO, source, "{0}{1}".format(chr(username), port))
+
+    def msg(self, source, message):
+        self.sendCMD(self.CMD_MSG, source, "{0}".format(chr(message)))
+
+    def whisper(self, source, username, message):
+        self.sendCMD(self.CMD_WHISPER, source, "{0}{1}".format(chr(username), chr(message)))
+
 
     def addChannel(self, channelName, out=sys.stdout):
         print ('Adding Channel', channelName);
@@ -195,7 +211,7 @@ def main():
     # s.ping(2, 9, "Test");
     # s.runTime(5);
 
-    #transport:
+    # Transport Test
     s.addChannel(s.COMMAND_CHANNEL);
     s.addChannel(s.GENERAL_CHANNEL);
     s.addChannel(s.NEIGHBOR_CHANNEL);
@@ -210,5 +226,22 @@ def main():
     s.setTestClient(3, 2, 20, 21, 'ABC');
     s.runTime(1);
     s.runTime(1000);
+
+    # Chat server Test
+    s.startChatServer();
+    s.runTime(100);
+    s.hello('joe');
+    s.runTime(250);
+    s.hello('blow');
+    s.runTime(250);
+    s.hello('schmo');
+    s.runTime(250);
+    s.hello('joe');
+    s.runTime(250);
+    s.whisper('joe', 'Hi Joe');
+    s.runTime(250);
+    s.msg('Hi Everyone!');
+    s.runTime(250);
+
 if __name__ == '__main__':
     main()
