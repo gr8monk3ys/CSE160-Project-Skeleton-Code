@@ -229,19 +229,20 @@ def main():
     # s.runTime(1000);
 
     # Chat server Test
-    s.startChatServer();
+    s.runTime(250);
+    s.setTestServer(2, 20);
+    s.runTime(100);
+    s.setTestClient(3, 2, 20, 21, 'ABC');
+    s.runTime(500);
+    s.startChatServer(1);
     s.runTime(100);
     s.hello(5, 'joe', 42);
     s.runTime(250);
-    s.hello('blow');
+    s.whisper(5, 'joe', 'Hi Joe');
     s.runTime(250);
-    s.hello('schmo');
+    s.msge(5, 'Hi Everyone!');
     s.runTime(250);
-    s.hello('joe');
-    s.runTime(250);
-    s.whisper('joe', 'Hi Joe');
-    s.runTime(250);
-    s.msg(5, 'Hi Everyone!');
+    s.listusr(1);
     s.runTime(250);
 
 if __name__ == '__main__':
