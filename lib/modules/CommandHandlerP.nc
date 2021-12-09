@@ -105,6 +105,12 @@ implementation {
         //signal CommandHandler.hello(buff[0], buff[1]);
         signal CommandHandler.hello(buff[0]);
         break;
+        
+      case CMD_LIST_USERS:
+        dbg(COMMAND_CHANNEL, "Command Type: List Users\n");
+        signal CommandHandler.listUsers();
+        break;
+
 
       default:
         dbg(COMMAND_CHANNEL, "CMD_ERROR: \"%d\" does not match any known commands.\n", msg -> id);

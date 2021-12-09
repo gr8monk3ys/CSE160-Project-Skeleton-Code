@@ -19,6 +19,7 @@ class TestSim:
     CMD_MSG=11
     CMD_HELLO=12
     CMD_WHISPER=13
+    CMD_LIST_USERS=14
 
     # CHANNELS - see includes/channels.h
     COMMAND_CHANNEL="command";
@@ -141,13 +142,13 @@ class TestSim:
         self.sendCMD(self.CMD_START_CHAT_SERVER, source, "chat server")
 
     def hello(self, source, username, port):
-        self.sendCMD(self.CMD_HELLO, source, "{0}{1}".format(chr(username), port))
+        self.sendCMD(self.CMD_HELLO, source, "{0}{1}".format(username, chr(port)))
 
     def msg(self, source, message):
-        self.sendCMD(self.CMD_MSG, source, "{0}".format(chr(message)))
+        self.sendCMD(self.CMD_MSG, source, "{0}".format(message))
 
     def whisper(self, source, username, message):
-        self.sendCMD(self.CMD_WHISPER, source, "{0}{1}".format(chr(username), chr(message)))
+        self.sendCMD(self.CMD_WHISPER, source, "{0}{1}".format(username, message))
 
 
     def addChannel(self, channelName, out=sys.stdout):
@@ -217,7 +218,7 @@ def main():
     #s.addChannel(s.NEIGHBOR_CHANNEL);
     s.addChannel(s.TRANSPORT_CHANNEL);
 
-    # After sending a ping, simulate a little to prevent collision.
+    # # After sending a ping, simulate a little to prevent collision.
 
     s.runTime(250);
     s.setTestServer(2,20); #port 20

@@ -23,6 +23,7 @@ enum{
 	CMD_MSG=11,
 	CMD_HELLO=12,
 	CMD_WHISPER=13,
+	CMD_LIST_USERS=14
 };
 
 enum{

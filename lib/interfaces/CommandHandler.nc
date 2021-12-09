@@ -16,4 +16,5 @@ interface CommandHandler{
    event void hello(uint8_t *username);
    //event void msg(uint8_t *message);
    event void whisper(uint8_t *username, uint8_t *message);
+   event void listUsers();
 }
