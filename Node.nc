@@ -20,6 +20,8 @@
 
 #include "includes/TCP_t.h"
 
+#include "includes/chat.h"
+
 module Node {
   uses interface Boot;
 
@@ -46,13 +48,13 @@ module Node {
 
   uses interface LinkState;
 
-  uses interface Timer<TMilli> as ClientDataTimer;
+  uses interface Timer < TMilli > as ClientDataTimer;
 
-  uses interface Timer<TMilli> as AttemptConnection;
+  uses interface Timer < TMilli > as AttemptConnection;
 
-  uses interface List<socket_addr_t> as Connections;
+  uses interface List < socket_addr_t > as Connections;
 
-  uses interface List <Route> as RoutingTable; //to access link state values for transport:
+  uses interface List < Route > as RoutingTable; //to access link state values for transport:
 
   uses interface Transport;
 
@@ -60,7 +62,9 @@ module Node {
 
   uses interface LiveSocketList;
 
-  uses interface Hashmap<socket_storage_t*> as SocketPointerMap;
+  uses interface Hashmap < socket_storage_t * > as SocketPointerMap;
+
+  uses interface Hashmap < uint8_t * > as Users;
 
 }
 
@@ -68,6 +72,7 @@ implementation {
 
   pack sendPackage;
   pack ackPackage;
+  uint8_t * currentUser;
   //uint16_t seq = 1;
   uint16_t current_seq = 1;
 
@@ -123,7 +128,7 @@ implementation {
     //dbg(GENERAL_CHANNEL, "Packet Received\n");
 
     if (len == sizeof(pack)) {
-      pack * myMsg = (pack *) payload;
+      pack * myMsg = (pack * ) payload;
 
       // Check TTL
       if (myMsg -> TTL-- == 0) {
@@ -139,7 +144,7 @@ implementation {
         myMsg -> TTL = myMsg -> TTL - 1;
 
         if (myMsg -> TTL > 0) {
-          makePack(&sendPackage,
+          makePack( & sendPackage,
             TOS_NODE_ID,
             myMsg -> dest,
             myMsg -> TTL,
@@ -224,7 +229,7 @@ implementation {
 
     dbg(GENERAL_CHANNEL, "SENDING FROM: %i to %i\n", TOS_NODE_ID, origin);
 
-    makePack( &ackPackage,
+    makePack( & ackPackage,
       TOS_NODE_ID,
       origin,
       500,
@@ -383,7 +388,68 @@ implementation {
     }
   }
 
-  event void CommandHandler.setAppServer() {}
+  event void CommandHandler.startChatServer() {
+    socket_t fd = call Transport.socket();
+    socket_addr_t socketAddress;
+
+    dbg(NEIGHBOR_CHANNEL, "Init server at port-%d\n", port);
+
+    if (fd != NULL_SOCKET) {
+      socketAddress.srcAddr = TOS_NODE_ID;
+      socketAddress.srcPort = DEFAULT_CHAT_PORT;
+      socketAddress.destAddr = 0;
+      socketAddress.destPort = 0;
+
+      if (call Transport.bind(fd, & socketAddress) == SUCCESS) {
+        dbg(NEIGHBOR_CHANNEL, "Chat server booted!\n");
+        call Transport.listen(fd);
+        call AttemptConnection.startPeriodic(1000);
+
+        return;
+      }
+
+      dbg(NEIGHBOR_CHANNEL, "Server could not be set up\n");
+      return;
+    }
+  }
+
+  event void CommandHandler.hello(uint8_t * message) {
+    socket_storage_t temp;
+    socket_addr_t socketAddress;
+    socket_t fd = call Transport.socket();
+
+    uint16_t * transferSize = (uint16_t * ) message;
+
+    socketAddress.srcAddr = TOS_NODE_ID;
+    socketAddress.srcPort = DEFAULT_CHAT_PORT;
+    socketAddress.destAddr = DEFAULT_CHAT_NODE;
+    socketAddress.destPort = DEFAULT_CHAT_PORT;
+
+    call Transport.bind(fd, & socketAddress);
+    call Transport.connect(fd, & socketAddress);
+    call WindowManager.setWindowInfo(fd, transferSize[0]);
+    call ClientDataTimer.startPeriodic(2500);
+    return;
+  }
+
+  event void CommandHandler.whisper(uint8_t * username, uint8_t * message) {
+    socket_storage_t temp;
+    socket_addr_t socketAddress;
+    socket_t fd = call Transport.socket();
+
+    uint16_t * transferSize = (uint16_t * ) username;
+
+    socketAddress.srcAddr = TOS_NODE_ID;
+    socketAddress.srcPort = DEFAULT_CHAT_PORT;
+    socketAddress.destAddr = DEFAULT_CHAT_NODE;
+    socketAddress.destPort = DEFAULT_CHAT_PORT + 1;
+
+    call Transport.bind(fd, & socketAddress);
+    call Transport.connect(fd, & socketAddress);
+    call WindowManager.setWindowInfo(fd, transferSize[0]);
+    call ClientDataTimer.startPeriodic(2500);
+    return;
+  }
 
   event void CommandHandler.setAppClient() {}
 

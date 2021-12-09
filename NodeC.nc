@@ -8,10 +8,15 @@
  */
 
 #include <Timer.h>
+
 #include "../../includes/route.h"
+
 #include "includes/CommandMsg.h"
+
 #include "includes/packet.h"
+
 #include "includes/socket.h"
+
 #include "includes/TCP_t.h"
 
 configuration NodeC {}
@@ -71,8 +76,8 @@ implementation {
   Node.Connections -> ListC1;
   TransportP.Connections -> ListC1;
 
-  //  components new HashmapC(uint8_t*, 256) as HashmapC5;
-  //   Node.Users -> HashmapC5;
+  components new HashmapC(uint8_t * , 256) as HashmapC5;
+  Node.Users -> HashmapC5;
 
   components new HashmapC(window_t, 256) as HashmapC4;
   WindowP.WindowInfoList -> HashmapC4;
@@ -81,7 +86,7 @@ implementation {
   Node.LiveSocketList -> LiveSocketListC;
   TransportP.LiveSocketList -> LiveSocketListC;
 
-  components new HashmapC(socket_storage_t*, MAX_SOCKET_COUNT) as HashmapC3;
+  components new HashmapC(socket_storage_t * , MAX_SOCKET_COUNT) as HashmapC3;
   Node.SocketPointerMap -> HashmapC3;
   TransportP.SocketPointerMap -> HashmapC3;
   WindowP.SocketPointerMap -> HashmapC3;
