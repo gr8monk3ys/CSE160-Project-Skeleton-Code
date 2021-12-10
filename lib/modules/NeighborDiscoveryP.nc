@@ -19,13 +19,13 @@ void makePack(pack* neighborPack, uint16_t seq) {
     neighborPack->seq = seq;
     neighborPack->protocol = PROTOCOL_PING; //a ping and not a reply
 
-    // dbg(NEIGHBOR_CHANNEL, "Within: makePack()\n");
-    dbg(NEIGHBOR_CHANNEL, "Source Node: %d\n", neighborPack->src);
+    // dbg(ROUTING_CHANNEL, "Within: makePack()\n");
+    dbg(ROUTING_CHANNEL, "Source Node: %d\n", neighborPack->src);
     memcpy(neighborPack->payload, "Neighbor Discovery\n", 19);
 }
 
 void Reply(pack* msg) {
-    dbg(NEIGHBOR_CHANNEL, "Flag - accessed Reply protocol");
+    dbg(ROUTING_CHANNEL, "Flag - accessed Reply protocol");
     msg->src = TOS_NODE_ID; //the node in question (intital node)
     msg->protocol = PROTOCOL_PINGREPLY; //from the protocol.h file
     //that reply is now sent via the Nodes:
@@ -36,19 +36,19 @@ void displayOffProtocol(pack* msg) {
     //checking if the protocol is of ping
     if (msg->protocol == PROTOCOL_PING) {
 
-        dbg(NEIGHBOR_CHANNEL, "Neighbor reply from %d. Adding to neighbor list\n", msg->src);
+        dbg(ROUTING_CHANNEL, "Neighbor reply from %d. Adding to neighbor list\n", msg->src);
         call NeighborNodes.insert(msg->src, THRESHOLD);
     }
     //checking if the protocol is of reply
     else if (msg->protocol == PROTOCOL_PINGREPLY) {
 
-        dbg(NEIGHBOR_CHANNEL, "Neighbor discovery from %d. Adding to list & replying...\n", msg->src);
+        dbg(ROUTING_CHANNEL, "Neighbor discovery from %d. Adding to list & replying...\n", msg->src);
         call NeighborNodes.insert(msg->src, THRESHOLD);
         //need to change ping to reply
         Reply(msg);
     }
     else {
-         dbg(NEIGHBOR_CHANNEL, "Wrong Protocol Type%d\n", msg->protocol);
+         dbg(ROUTING_CHANNEL, "Wrong Protocol Type%d\n", msg->protocol);
     }
 }
 
@@ -69,7 +69,7 @@ void decrementTimeout() {
 
 command void NeighborDiscovery.find(uint16_t seq) {
     pack neighborPack; //a new pack called Neighbor pack
-    // dbg(NEIGHBOR_CHANNEL, "Within: find()\n");
+    // dbg(ROUTING_CHANNEL, "Within: find()\n");
     makePack(&neighborPack, seq); //making a new packet with a sequence
     call Sender.send(neighborPack, AM_BROADCAST_ADDR); //sending out packet w said attributes 
 }
@@ -93,15 +93,15 @@ command void NeighborDiscovery.printNeighbors() {
     //we want to gather the NeighborNodes in the table
     uint32_t* neighborNodes = call NeighborDiscovery.gatherNeighbors();
 
-    dbg(NEIGHBOR_CHANNEL, "Neighbor Nodes of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
+    dbg(ROUTING_CHANNEL, "Neighbor Nodes of Node %d\n", TOS_NODE_ID); // a general message to get the contents of the list from the Node (in question)
 
     while (i < call NeighborDiscovery.numNeighbors()) {
         //using our num NeighborNodes function to get the number of NeighborNodes 
-        dbg(NEIGHBOR_CHANNEL, "Neighbor Node: %d\n", neighborNodes[i]); //actually printing the NeighborNodes    
+        dbg(ROUTING_CHANNEL, "Neighbor Node: %d\n", neighborNodes[i]); //actually printing the NeighborNodes    
         i++;
     }
 
-    dbg(NEIGHBOR_CHANNEL, "---------------------------\n");
+    dbg(ROUTING_CHANNEL, "---------------------------\n");
 }
 
 //we want to recieve the message:
