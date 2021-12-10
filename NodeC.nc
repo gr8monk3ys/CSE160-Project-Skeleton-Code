@@ -91,6 +91,9 @@ implementation {
   TransportP.SocketPointerMap -> HashmapC3;
   WindowP.SocketPointerMap -> HashmapC3;
 
+  components new HashmapC(uint16_t, 256) as HashmapC2;
+  Node.MessageStorageExplored -> HashmapC2;
+
   // components RandomC;
   // TransportP.Random -> RandomC;
 

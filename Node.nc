@@ -22,6 +22,8 @@
 
 #include "includes/chat.h"
 
+#include "includes/socket.h"
+
 module Node {
   uses interface Boot;
 
@@ -64,6 +66,8 @@ module Node {
 
   uses interface Hashmap < socket_storage_t * > as SocketPointerMap;
 
+   uses interface Hashmap<uint16_t> as MessageStorageExplored; // stores unique message ids to prevent overflows for exploration
+
   uses interface Hashmap < uint8_t * > as Users;
 
 }
@@ -83,6 +87,7 @@ implementation {
   //void sendWithTimerPing(pack *Package);
   uint16_t ignoreSelf(uint16_t destination);
   uint16_t sendInitial(uint16_t initial);
+  uint16_t generateUniqueMessageHash(uint16_t payload, uint16_t destination, uint16_t sequence);
 
   // Gets called for initial processes
   event void Boot.booted() {
@@ -126,18 +131,18 @@ implementation {
   event message_t * Receive.receive(message_t * msg, void * payload, uint8_t len) {
 
     //dbg(GENERAL_CHANNEL, "Packet Received\n");
+     pack * myMsg = (pack *)payload;
 
-    if (len == sizeof(pack)) {
-      pack * myMsg = (pack * ) payload;
+     uint16_t messageHash = generateUniqueMessageHash(myMsg -> payload, myMsg -> dest, myMsg -> seq);
 
-      // Check TTL
-      if (myMsg -> TTL-- == 0) {
-        return msg;
-      }
+    //if (len == sizeof(pack)) {
+      //transport
       if (myMsg -> protocol == PROTOCOL_TCP) {
         if (myMsg -> dest == TOS_NODE_ID) {
           dbg(NEIGHBOR_CHANNEL, "Packet recieved from: %i\n", myMsg -> src);
-          //   call Transport.receive(myMsg);
+
+             call Transport.receive(myMsg);
+
           return msg;
         }
 
@@ -175,13 +180,14 @@ implementation {
 
           return msg;
         }
+      
 
       //Distance Vector -- LinkState Routing
-      if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
-        call LinkState.recieve(myMsg);
+      // if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
+      //   call LinkState.recieve(myMsg);
 
         //Distance Vector
-        if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
+       } else if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
           call LinkState.recieve(myMsg);
 
           //REGULAR PING
@@ -197,10 +203,15 @@ implementation {
           call LinkState.send(myMsg);
         }
         return msg;
-      }
+      // }
       dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
       return msg;
-    }
+    //}
+  }
+
+  uint16_t generateUniqueMessageHash(uint16_t payload, uint16_t destination, uint16_t sequence){
+       return payload + ((sequence + 1) * destination);
+   }
 
     ///////////////////////////////
 
@@ -297,9 +308,13 @@ implementation {
       return;
     }
 
-    dbg(TRANSPORT_CHANNEL, "Server could not be set up\n");
-    return;
-  }
+  //   dbg(TRANSPORT_CHANNEL, "Server could not be set up\n");
+  //   return;
+  // }
+
+    event void AttemptConnection.fired() {
+      socket_storage_t* tempSocket;
+      uint32_t* socketKeys = call SocketPointerMap.getKeys();
 
       int i;
       // if we have connections on our server, we should accept this
@@ -313,7 +328,7 @@ implementation {
 
         if (tempSocket -> state == SOCK_ESTABLISHED) {
           // read data
-          call Window.readData(socketKeys[i]);
+            call Window.readData(socketKeys[i]);
         }
       }
     }
@@ -439,7 +454,7 @@ implementation {
 
       call Transport.bind(fd, & socketAddress);
       call Transport.connect(fd, & socketAddress);
-      call WindowManager.setWindowInfo(fd, transferSize[0]);
+      call Window.setWindowInfo(fd, transferSize[0]);
       call ClientDataTimer.startPeriodic(2500);
       return;
     }
@@ -450,12 +465,7 @@ implementation {
       socket_t fd = call Transport.socket();
       uint16_t * transferSize = (uint16_t * ) username;
 
-    call Transport.bind(fd, & socketAddress);
-    call Transport.connect(fd, & socketAddress);
-    call Window.setWindowInfo(fd, transferSize[0]);
-    call ClientDataTimer.startPeriodic(2500);
-    return;
-  }
+      dbg(TRANSPORT_CHANNEL,"<%s> has entered\n", username);
 
       socketAddress.srcAddr = TOS_NODE_ID;
       socketAddress.srcPort = port;
@@ -464,7 +474,7 @@ implementation {
 
       call Transport.bind(fd, & socketAddress);
       call Transport.connect(fd, & socketAddress);
-      call WindowManager.setWindowInfo(fd, transferSize[0]);
+      call Window.setWindowInfo(fd, transferSize[0]);
       call ClientDataTimer.startPeriodic(2500);
       return;
     }
@@ -474,33 +484,29 @@ implementation {
       socket_addr_t socketAddress;
       socket_t fd = call Transport.socket();
 
-    call Transport.bind(fd, & socketAddress);
-    call Transport.connect(fd, & socketAddress);
-    call Window.setWindowInfo(fd, transferSize[0]);
-    call ClientDataTimer.startPeriodic(2500);
-    return;
-  }
+      uint16_t *transferSize = (uint16_t*) message;
 
-      dbg(NEIGHBOR_CHANNEL, "<%s>: %s\n", username, message);
+       dbg(TRANSPORT_CHANNEL,"<%s>: %s\n", username, message);
 
-      socketAddress.srcAddr = TOS_NODE_ID;
-      socketAddress.srcPort = DEFAULT_CHAT_PORT;
-      socketAddress.destAddr = DEFAULT_CHAT_NODE;
-      socketAddress.destPort = DEFAULT_CHAT_PORT;
+       socketAddress.srcAddr = TOS_NODE_ID;
+       socketAddress.srcPort = DEFAULT_CHAT_PORT;
+       socketAddress.destAddr = DEFAULT_CHAT_NODE;
+       socketAddress.destPort = DEFAULT_CHAT_PORT;
 
       call Transport.bind(fd, & socketAddress);
       call Transport.connect(fd, & socketAddress);
-      call WindowManager.setWindowInfo(fd, transferSize[0]);
+      call Window.setWindowInfo(fd, transferSize[0]);
       call ClientDataTimer.startPeriodic(2500);
       return;
-    }
+  }
+
 
     event void CommandHandler.listUsers() {
       int i = 0;
 
       for (i = 0; i < 256; i++) {
         if (call Users.contains(i)) {
-          dbg(NEIGHBOR_CHANNEL, "User: %s\n", call Users.get(i));
+          dbg(TRANSPORT_CHANNEL, "User: %s\n", call Users.get(i));
         }
       }
     }

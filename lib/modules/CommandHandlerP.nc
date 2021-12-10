@@ -70,8 +70,8 @@ implementation {
         break;
 
       case CMD_TEST_CLIENT:
-        dbg(COMMAND_CHANNEL, "Command Type: Client\n");
-        signal CommandHandler.setTestClient(buff[0], buff[1], buff[2], & buff[3]);
+        dbg(COMMAND_CHANNEL, "Command Type: Test Client\n");
+        signal CommandHandler.setTestClient(buff[0], buff[1], buff[2], &buff[3]);
         break;
 
       case CMD_TEST_SERVER:
@@ -92,25 +92,23 @@ implementation {
       case CMD_HELLO:
         dbg(COMMAND_CHANNEL, "Command Type: Hello\n");
         //signal CommandHandler.hello(buff[0], buff[1]);
-        signal CommandHandler.hello(buff[0]);
+        signal CommandHandler.hello(&buff[0], buff[1]);
         break;
 
       case CMD_MSG:
         dbg(COMMAND_CHANNEL, "Command Type: Message\n");
-        signal CommandHandler.hello(buff[0]);
+        signal CommandHandler.msg(buff[0]);
         break;
 
       case CMD_WHISPER:
-        dbg(COMMAND_CHANNEL, "Command Type: Whistper\n");
-        //signal CommandHandler.hello(buff[0], buff[1]);
-        signal CommandHandler.hello(buff[0]);
+        dbg(COMMAND_CHANNEL, "Command Type: Whisper\n");
+        signal CommandHandler.whisper(&buff[0], &buff[1]);
         break;
         
       case CMD_LIST_USERS:
         dbg(COMMAND_CHANNEL, "Command Type: List Users\n");
         signal CommandHandler.listUsers();
         break;
-
 
       default:
         dbg(COMMAND_CHANNEL, "CMD_ERROR: \"%d\" does not match any known commands.\n", msg -> id);

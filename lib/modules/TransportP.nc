@@ -61,12 +61,14 @@ implementation {
     uint8_t preventRun = 0;
     uint8_t size = call RoutingTable.size();
     uint8_t i;
+    Route row1;
 
+    //gets values from the list and only object row can access...
     for(i = 0; i < size; i++ ){
     Route row = call RoutingTable.get(i);
     }
     
-    while ((!row.next_hop == finalDestination ) && preventRun < 999) {
+    while ((!row.next_hop == nextDestination) && preventRun < 999) {
       nextDestination++;
 
       if (nextDestination >= MAX_NODE_COUNT) {
@@ -75,9 +77,8 @@ implementation {
 
       preventRun++;
     }
-    
 
-    row = call RoutingTable.get(nextDestination);
+    row1 = call RoutingTable.get(nextDestination);
     
     //row.next_hop
     if (row.cost == 1) {

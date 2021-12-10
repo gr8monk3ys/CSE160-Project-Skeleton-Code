@@ -13,8 +13,8 @@ interface CommandHandler{
    //event void setAppServer();
    event void setAppClient();
    event void startChatServer();
-   event void hello(uint8_t *username);
-   //event void msg(uint8_t *message);
+   event void hello(uint8_t *username, uint8_t port);
+   event void msg(uint8_t *message);
    event void whisper(uint8_t *username, uint8_t *message);
    event void listUsers();
 }
