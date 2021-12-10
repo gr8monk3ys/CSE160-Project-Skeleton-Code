@@ -8,16 +8,12 @@
  */
 
 #include <Timer.h>
-
 #include "includes/route.h"
-
 #include "includes/CommandMsg.h"
-
 #include "includes/packet.h"
-
 #include "includes/socket.h"
-
 #include "includes/TCP_t.h"
+#include "includes/window.h"
 
 configuration NodeC {}
 implementation {
@@ -29,11 +25,17 @@ implementation {
 
   Node.Receive -> GeneralReceive;
 
+  components RandomC;
+  Node.Random -> RandomC;
+
   components ActiveMessageC;
   Node.AMControl -> ActiveMessageC;
 
   components CommandHandlerC;
   Node.CommandHandler -> CommandHandlerC;
+
+  components new SimpleSendC(AM_PACK);
+  Node.Sender -> SimpleSendC;
 
   components FloodingC;
   Node.Flooding -> FloodingC;
@@ -59,41 +61,28 @@ implementation {
   components TransportP;
   Node.Transport -> TransportP;
 
-  components new SimpleSendC(AM_PACK);
-  Node.Sender -> SimpleSendC;
-  TransportP.Sender -> SimpleSendC;
+  components TransportC;
+  Node.Transport -> TransportC;
 
   components WindowP;
   Node.Window -> WindowP;
-  TransportP.Window -> WindowP;
+
+  components WindowC;
+  Node.Window -> WindowC;
 
   components new ListC(socket_addr_t, 256) as ListC1;
   Node.Connections -> ListC1;
-  TransportP.Connections -> ListC1;
 
   components new HashmapC(uint8_t * , 256) as HashmapC5;
   Node.Users -> HashmapC5;
 
-  components new HashmapC(window_t, 256) as HashmapC4;
-  WindowP.WindowInfoList -> HashmapC4;
-
   components LiveSocketListC;
   Node.LiveSocketList -> LiveSocketListC;
-  TransportP.LiveSocketList -> LiveSocketListC;
-
-  components new HashmapC(socket_storage_t * , MAX_SOCKET_COUNT) as HashmapC3;
-  Node.SocketPointerMap -> HashmapC3;
-  TransportP.SocketPointerMap -> HashmapC3;
-  WindowP.SocketPointerMap -> HashmapC3;
 
   components new HashmapC(uint16_t, 256) as HashmapC2;
   Node.MessageStorageExplored -> HashmapC2;
 
-  components RandomC;
-  Node.Random -> RandomC;
-  TransportP.Random -> RandomC;
-
-  components TransportC;
-  Node.Transport -> TransportC;
+  components new HashmapC(socket_storage_t * , MAX_SOCKET_COUNT) as HashmapC3;
+  Node.SocketPointerMap -> HashmapC3;
 
 }
