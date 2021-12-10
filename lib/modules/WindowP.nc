@@ -1,4 +1,5 @@
 #include "../../includes/window.h"
+#include "../../includes/socket.h"
 
 window_t generateNewWindowDetails(uint16_t size, uint16_t prevValue) {
    window_t info;
@@ -21,6 +22,7 @@ module WindowP{
    provides interface Window;
 
    uses interface Hashmap<socket_storage_t*> as SocketPointerMap;
+   
    uses interface Hashmap<window_t> as WindowInfoList;
 }
 
