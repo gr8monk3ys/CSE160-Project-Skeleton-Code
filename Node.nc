@@ -7,22 +7,15 @@
  *
  */
 #include <Timer.h>
-
 #include "includes/command.h"
-
 #include "includes/packet.h"
-
 #include "includes/CommandMsg.h"
-
 #include "includes/sendInfo.h"
-
 #include "includes/channels.h"
-
 #include "includes/TCP_t.h"
-
 #include "includes/chat.h"
-
 #include "includes/socket.h"
+#include "includes/window.h"
 
 module Node {
   uses interface Boot;
@@ -114,8 +107,8 @@ implementation {
     case PROTOCOL_PING:
       dbg(GENERAL_CHANNEL, "--- Ping recieved from: %d\n", msg -> src);
       dbg(GENERAL_CHANNEL, "--- Packet Payload: %s\n", msg -> payload);
-      makePack( & sendPackage, msg -> dest, msg -> src, MAX_TTL, PROTOCOL_PINGREPLY, current_seq++, (uint8_t * ) msg -> payload, PACKET_MAX_PAYLOAD_SIZE);
-      call LinkState.send( & sendPackage);
+      makePack( &sendPackage, msg -> dest, msg -> src, MAX_TTL, PROTOCOL_PINGREPLY, current_seq++, (uint8_t * ) msg -> payload, PACKET_MAX_PAYLOAD_SIZE);
+      call LinkState.send( &sendPackage);
       break;
 
     case PROTOCOL_PINGREPLY:
@@ -130,18 +123,16 @@ implementation {
   //A function when we recieve packets:
   event message_t * Receive.receive(message_t * msg, void * payload, uint8_t len) {
 
-    //dbg(GENERAL_CHANNEL, "Packet Received\n");
-     pack * myMsg = (pack *)payload;
+    pack *myMsg = (pack*)payload;
 
-     uint16_t messageHash = generateUniqueMessageHash(myMsg -> payload, myMsg -> dest, myMsg -> seq);
+    uint16_t messageHash = generateUniqueMessageHash(myMsg -> payload, myMsg -> dest, myMsg -> seq);
 
     //if (len == sizeof(pack)) {
       //transport
       if (myMsg -> protocol == PROTOCOL_TCP) {
         if (myMsg -> dest == TOS_NODE_ID) {
-          dbg(NEIGHBOR_CHANNEL, "Packet recieved from: %i\n", myMsg -> src);
-
-             call Transport.receive(myMsg);
+          dbg(TRANSPORT_CHANNEL, "Packet recieved from: %i\n", myMsg -> src);
+          call Transport.receive(myMsg);
 
           return msg;
         }
@@ -150,7 +141,7 @@ implementation {
 
         //For Transport?
         if (myMsg -> TTL > 0) {
-          makePack( & sendPackage,
+          makePack( &sendPackage,
             TOS_NODE_ID,
             myMsg -> dest,
             myMsg -> TTL,
@@ -163,12 +154,12 @@ implementation {
 
           return msg;
         }
-        dbg(GENERAL_CHANNEL, "TCP Timed out");
+        dbg(TRANSPORT_CHANNEL, "TCP Timed out");
         return msg;
       }
 
       // CASE: our Prootocol is for a normal message
-      if (myMsg -> protocol == 0) {
+      if (myMsg -> protocol == PROTOCOL_PING) {
 
         // CASE: If we arrive at the destination
         if (TOS_NODE_ID == myMsg -> dest && !call MessageStorageExplored.contains(messageHash)) {
@@ -180,33 +171,49 @@ implementation {
 
           return msg;
         }
-      
 
-      //Distance Vector -- LinkState Routing
-      // if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
-      //   call LinkState.recieve(myMsg);
+        // CASE: If we don't at the destination
+        if(len == sizeof(pack)) {
+           // METHOD: Copy old package to new a new package, replacing the source ID with the current Node ID
+           makePack(&sendPackage,
+                     TOS_NODE_ID,
+                     myMsg -> dest,
+                     myMsg -> TTL,
+                     0,
+                     myMsg -> seq,
+                     myMsg -> payload,
+                     PACKET_MAX_PAYLOAD_SIZE);
 
-        //Distance Vector
-       } else if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
+           // SEND new Package
+          //  sendWithTimerPing(&sendPackage);
+
+           return msg;
+        }
+
+        dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
+        return msg;
+
+       }
+        // Distance Vector
+       else if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
           call LinkState.recieve(myMsg);
-
-          //REGULAR PING
-        } else if (myMsg -> dest == TOS_NODE_ID) {
+        }
+        // Regular Ping 
+        else if (myMsg -> dest == TOS_NODE_ID) {
           pingHandler(myMsg);
 
-          //neighbor discovery
-        } else if (myMsg -> dest == AM_BROADCAST_ADDR) {
+          
+        }
+        //neighbor discovery 
+        else if (myMsg -> dest == AM_BROADCAST_ADDR) {
           call NeighborDiscovery.recieve(myMsg);
 
-          //NOT DESTINATION 
-        } else {
+          
+        }
+        //NOT DESTINATION  
+        else {
           call LinkState.send(myMsg);
         }
-        return msg;
-      // }
-      dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
-      return msg;
-    //}
   }
 
   uint16_t generateUniqueMessageHash(uint16_t payload, uint16_t destination, uint16_t sequence){
@@ -215,16 +222,25 @@ implementation {
 
     ///////////////////////////////
 
-    //To run neighbor discovery:
+    // Called to give a ping command to any called nodes
+    event void CommandHandler.ping(uint16_t destination, uint8_t * payload) {
 
+      dbg(GENERAL_CHANNEL, "PING EVENT \n");
+      //specific packet (via protocol ping is being produced)
+      makePack( &sendPackage, TOS_NODE_ID, destination, MAX_TTL, PROTOCOL_PING, current_seq++, payload, PACKET_MAX_PAYLOAD_SIZE);
+      call Sender.send(sendPackage, destination);
+      call LinkState.send( &sendPackage);
+    }
+
+    // To run neighbor discovery:
     event void NeighborTimer.fired() {
       call NeighborDiscovery.find(current_seq++);
     }
 
-    //to run link state routing:
+    // To run link state routing:
     event void LinkStateTimer.fired() {
 
-      //to gather our neighbors and the total number as the key....
+      // To gather our neighbors and the total number as the key....
       uint32_t * neighbors = call NeighborDiscovery.gatherNeighbors();
       uint16_t numNeighbors = call NeighborDiscovery.numNeighbors();
 
@@ -232,33 +248,7 @@ implementation {
       call LinkState.start();
     }
 
-    // Called to give a ping command to any called nodes
-    event void CommandHandler.ping(uint16_t destination, uint8_t * payload) {
-
-      dbg(GENERAL_CHANNEL, "PING EVENT \n");
-      //specific packet (via protocol ping is being produced)
-      makePack( & sendPackage, TOS_NODE_ID, destination, MAX_TTL, PROTOCOL_PING, current_seq++, payload, PACKET_MAX_PAYLOAD_SIZE);
-      call Sender.send(sendPackage, destination);
-      call LinkState.send( & sendPackage);
-    }
-
     //event void CommandHandler.ping(uint16_t destination, uint8_t * payload) {}
-
-    void sendACKMessage(uint16_t origin, uint8_t arrivedAtDestination) {
-
-      dbg(GENERAL_CHANNEL, "SENDING FROM: %i to %i\n", TOS_NODE_ID, origin);
-
-      makePack( & ackPackage,
-        TOS_NODE_ID,
-        origin,
-        500,
-        1,
-        arrivedAtDestination,
-        'ACK',
-        PACKET_MAX_PAYLOAD_SIZE);
-
-      call Sender.send(ackPackage, origin);
-    }
 
     // Issues a call to all neighboring IDs of a node
     event void CommandHandler.printNeighbors() {
@@ -280,6 +270,22 @@ implementation {
       call LinkState.printRouteTable();
     }
 
+    void sendACKMessage(uint16_t origin, uint8_t arrivedAtDestination) {
+
+      dbg(GENERAL_CHANNEL, "SENDING FROM: %i to %i\n", TOS_NODE_ID, origin);
+
+      makePack( &ackPackage,
+        TOS_NODE_ID,
+        origin,
+        500,
+        1,
+        arrivedAtDestination,
+        'ACK',
+        PACKET_MAX_PAYLOAD_SIZE);
+
+      call Sender.send(ackPackage, origin);
+    }
+
     event void CommandHandler.setTestServer(uint8_t port) {
       socket_t fd = call Transport.socket();
       socket_addr_t socketAddress;
@@ -292,10 +298,10 @@ implementation {
         socketAddress.destAddr = DEFAULT_CHAT_NODE;
         socketAddress.destPort = DEFAULT_CHAT_PORT;
 
-      if (call Transport.bind(fd, & socketAddress) == SUCCESS) {
-        dbg(TRANSPORT_CHANNEL, "socket %d binded to port-%d\n", fd, port);
-        call Transport.listen(fd);
-        call AttemptConnection.startPeriodic(1000);
+      if (call Transport.bind(fd, &socketAddress) == SUCCESS) {
+          dbg(TRANSPORT_CHANNEL, "socket %d binded to port-%d\n", fd, port);
+          call Transport.listen(fd);
+          call AttemptConnection.startPeriodic(1000);
 
           return;
         }
@@ -338,17 +344,17 @@ implementation {
       socket_addr_t socketAddress;
       socket_t fd = call Transport.socket();
 
-      uint16_t * transferSize = (uint16_t * ) transfer;
+      uint16_t *transferSize = (uint16_t*) transfer;
 
-    dbg(TRANSPORT_CHANNEL, "Init client at port-%d headed to node://%d:%d with content '%s'\n", srcPort, dest, destPort, transfer);
+    dbg(GENERAL_CHANNEL, "Init client at port-%d headed to node://%d:%d with content '%s'\n", srcPort, dest, destPort, transfer);
 
       socketAddress.srcAddr = TOS_NODE_ID;
       socketAddress.srcPort = srcPort;
       socketAddress.destAddr = dest;
       socketAddress.destPort = destPort;
 
-      call Transport.bind(fd, & socketAddress);
-      call Transport.connect(fd, & socketAddress);
+      call Transport.bind(fd, &socketAddress);
+      call Transport.connect(fd, &socketAddress);
       call Window.setWindowInfo(fd, transferSize[0]);
       call ClientDataTimer.startPeriodic(2500);
     }
@@ -371,7 +377,7 @@ implementation {
         if (tempSocket -> timeout == 0) {
           dbg(TRANSPORT_CHANNEL, "Connection Failed - Retrying\n");
 
-            call Transport.connect(socketKeys[i], & tempSocket -> sockAddr);
+            call Transport.connect(socketKeys[i], &tempSocket -> sockAddr);
             tempSocket -> timeout = 6;
           } else {
             // lets keep retrying
@@ -404,7 +410,7 @@ implementation {
       socketAddress.destPort = destPort;
 
       // find established socket and close it
-      socketIndex = call LiveSocketList.search( & socketAddress, SOCK_ESTABLISHED);
+      socketIndex = call LiveSocketList.search( &socketAddress, SOCK_ESTABLISHED);
 
       if (socketIndex != -1) {
         call Transport.close(call LiveSocketList.getFd(socketIndex));
@@ -423,7 +429,7 @@ implementation {
         socketAddress.destAddr = 0;
         socketAddress.destPort = 0;
 
-      if (call Transport.bind(fd, & socketAddress) == SUCCESS) {
+      if (call Transport.bind(fd, &socketAddress) == SUCCESS) {
         dbg(TRANSPORT_CHANNEL, "Chat server booted!\n");
         call Transport.listen(fd);
         call AttemptConnection.startPeriodic(1000);
@@ -452,8 +458,8 @@ implementation {
       socketAddress.destAddr = DEFAULT_CHAT_NODE;
       socketAddress.destPort = DEFAULT_CHAT_PORT;
 
-      call Transport.bind(fd, & socketAddress);
-      call Transport.connect(fd, & socketAddress);
+      call Transport.bind(fd, &socketAddress);
+      call Transport.connect(fd, &socketAddress);
       call Window.setWindowInfo(fd, transferSize[0]);
       call ClientDataTimer.startPeriodic(2500);
       return;
@@ -472,8 +478,8 @@ implementation {
       socketAddress.destAddr = DEFAULT_CHAT_NODE;
       socketAddress.destPort = DEFAULT_CHAT_PORT;
 
-      call Transport.bind(fd, & socketAddress);
-      call Transport.connect(fd, & socketAddress);
+      call Transport.bind(fd, &socketAddress);
+      call Transport.connect(fd, &socketAddress);
       call Window.setWindowInfo(fd, transferSize[0]);
       call ClientDataTimer.startPeriodic(2500);
       return;
@@ -493,8 +499,8 @@ implementation {
        socketAddress.destAddr = DEFAULT_CHAT_NODE;
        socketAddress.destPort = DEFAULT_CHAT_PORT;
 
-      call Transport.bind(fd, & socketAddress);
-      call Transport.connect(fd, & socketAddress);
+      call Transport.bind(fd, &socketAddress);
+      call Transport.connect(fd, &socketAddress);
       call Window.setWindowInfo(fd, transferSize[0]);
       call ClientDataTimer.startPeriodic(2500);
       return;
