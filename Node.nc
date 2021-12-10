@@ -16,6 +16,7 @@
 #include "includes/chat.h"
 #include "includes/socket.h"
 #include "includes/window.h"
+#include "includes/route.h"
 
 module Node {
   uses interface Boot;
@@ -72,12 +73,13 @@ implementation {
   uint8_t * currentUser;
   //uint16_t seq = 1;
   uint16_t current_seq = 1;
+  int MAX_NODE_COUNT = 17;
 
   // Prototypes
   void makePack(pack * Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t Protocol, uint16_t seq, uint8_t * payload, uint8_t length);
   void pingHandler(pack * msg);
   uint32_t randNum(uint32_t min, uint32_t max);
-  //void sendWithTimerPing(pack *Package);
+  // void sendWithTimerPing(pack *Package);
   uint16_t ignoreSelf(uint16_t destination);
   uint16_t sendInitial(uint16_t initial);
   uint16_t generateUniqueMessageHash(uint16_t payload, uint16_t destination, uint16_t sequence);
@@ -127,7 +129,6 @@ implementation {
 
     uint16_t messageHash = generateUniqueMessageHash(myMsg -> payload, myMsg -> dest, myMsg -> seq);
 
-    //if (len == sizeof(pack)) {
       //transport
       if (myMsg -> protocol == PROTOCOL_TCP) {
         if (myMsg -> dest == TOS_NODE_ID) {
@@ -150,7 +151,7 @@ implementation {
             myMsg -> payload,
             PACKET_MAX_PAYLOAD_SIZE);
 
-          //sendWithTimerPing(&sendPackage);
+          // sendWithTimerPing(&sendPackage);
 
           return msg;
         }
@@ -192,7 +193,6 @@ implementation {
 
         dbg(GENERAL_CHANNEL, "Unknown Packet Type %d\n", len);
         return msg;
-
        }
         // Distance Vector
        else if (myMsg -> protocol == PROTOCOL_LINKSTATE) {
@@ -201,20 +201,66 @@ implementation {
         // Regular Ping 
         else if (myMsg -> dest == TOS_NODE_ID) {
           pingHandler(myMsg);
-
-          
         }
         //neighbor discovery 
         else if (myMsg -> dest == AM_BROADCAST_ADDR) {
           call NeighborDiscovery.recieve(myMsg);
-
-          
         }
         //NOT DESTINATION  
         else {
           call LinkState.send(myMsg);
         }
   }
+
+  // void sendWithTimerPing(pack * Package) {
+  //   uint8_t finalDestination = Package -> dest;
+  //   uint8_t nextDestination = finalDestination;
+  //   // dbg(TRANSPORT_CHANNEL, "next destination: %d\n", nextDestination);
+  //   uint8_t preventRun = 0;
+  //   uint16_t size = call RoutingTable.size();
+  //   uint16_t i;
+  //   Route route;
+
+  //   // Linkstate list version
+  //   for (i = 0; i < size; i++) {
+  //     route = call RoutingTable.get(i);
+  //     dbg(TRANSPORT_CHANNEL, "--- %d\t%d\t%d\n", route.dest, route.next_hop, route.cost);
+
+  //     if ((!route.next_hop == nextDestination) && preventRun < 999) {
+  //       nextDestination++;
+
+  //       if (nextDestination >= MAX_NODE_COUNT) {
+  //         nextDestination = 1;
+  //       }
+
+  //       preventRun++;
+  //     }
+
+  //     if (route.cost == 1) {
+  //       call Sender.send(sendPackage, finalDestination);
+  //     } else {
+  //       call Sender.send(sendPackage, route.next_hop);
+  //     }
+  //   }
+
+  //   // while ((!route.next_hop == nextDestination) && preventRun < 999) {
+  //   //   nextDestination++;
+
+  //   //   if (nextDestination >= MAX_NODE_COUNT) {
+  //   //     nextDestination = 1;
+  //   //   }
+
+  //   //   preventRun++;
+  //   // }
+
+  //   // route = call RoutingTable.get(nextDestination);
+    
+  //   // if (route.cost == 1) {
+  //   //   call Sender.send(sendPackage, finalDestination);
+  //   // } else {
+  //   //   call Sender.send(sendPackage, route.next_hop);
+  //   // }
+  // }
 
   uint16_t generateUniqueMessageHash(uint16_t payload, uint16_t destination, uint16_t sequence){
        return payload + ((sequence + 1) * destination);
@@ -306,7 +352,7 @@ implementation {
           return;
         }
 
-        dbg(NEIGHBOR_CHANNEL, "Server could not be set up\n");
+        dbg(TRANSPORT_CHANNEL, "Server could not be set up\n");
         return;
       }
 
@@ -314,15 +360,11 @@ implementation {
       return;
     }
 
-  //   dbg(TRANSPORT_CHANNEL, "Server could not be set up\n");
-  //   return;
-  // }
-
     event void AttemptConnection.fired() {
       socket_storage_t* tempSocket;
       uint32_t* socketKeys = call SocketPointerMap.getKeys();
 
-      int i;
+      uint16_t i;
       // if we have connections on our server, we should accept this
       if (call Connections.size() > 0) {
         call Transport.accept();
@@ -346,7 +388,7 @@ implementation {
 
       uint16_t *transferSize = (uint16_t*) transfer;
 
-    dbg(GENERAL_CHANNEL, "Init client at port-%d headed to node://%d:%d with content '%s'\n", srcPort, dest, destPort, transfer);
+    dbg(TRANSPORT_CHANNEL, "Init client at port-%d headed to node://%d:%d with content '%s'\n", srcPort, dest, destPort, transfer);
 
       socketAddress.srcAddr = TOS_NODE_ID;
       socketAddress.srcPort = srcPort;
