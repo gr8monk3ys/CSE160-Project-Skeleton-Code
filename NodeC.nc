@@ -32,12 +32,6 @@ implementation {
   components ActiveMessageC;
   Node.AMControl -> ActiveMessageC;
 
-  components RandomC;
-  Node.Random -> RandomC;
-
-  components new SimpleSendC(AM_PACK);
-  Node.Sender -> SimpleSendC;
-
   components CommandHandlerC;
   Node.CommandHandler -> CommandHandlerC;
 
@@ -65,8 +59,9 @@ implementation {
   components TransportP;
   Node.Transport -> TransportP;
 
-  components TransportC;
-  Node.Transport -> TransportC;
+  components new SimpleSendC(AM_PACK);
+  Node.Sender -> SimpleSendC;
+  TransportP.Sender -> SimpleSendC;
 
   components WindowP;
   Node.Window -> WindowP;
@@ -94,7 +89,11 @@ implementation {
   components new HashmapC(uint16_t, 256) as HashmapC2;
   Node.MessageStorageExplored -> HashmapC2;
 
-  // components RandomC;
-  // TransportP.Random -> RandomC;
+  components RandomC;
+  Node.Random -> RandomC;
+  TransportP.Random -> RandomC;
+
+  components TransportC;
+  Node.Transport -> TransportC;
 
 }
