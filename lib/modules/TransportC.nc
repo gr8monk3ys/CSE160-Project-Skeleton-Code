@@ -23,4 +23,16 @@ implementation {
   components LinkStateC;
   TransportP.LinkState -> LinkStateC;
 
+  components WindowP;
+  TransportP.Window -> WindowP;
+
+  components new ListC(socket_addr_t, 256) as ListC1;
+  TransportP.Connections -> ListC1;
+
+  components LiveSocketListC;
+  TransportP.LiveSocketList -> LiveSocketListC;
+
+  components new HashmapC(socket_storage_t * , MAX_SOCKET_COUNT) as HashmapC3;
+  TransportP.SocketPointerMap -> HashmapC3;
+
 }
