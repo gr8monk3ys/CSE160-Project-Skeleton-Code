@@ -162,12 +162,12 @@ def main():
     s.loadTopo("example.topo");
     s.loadNoise("no_noise.txt");
     s.bootAll();
-    # s.addChannel(s.COMMAND_CHANNEL);
-    # s.addChannel(s.GENERAL_CHANNEL);
-    # # s.addChannel(s.FLOODING_CHANNEL);
-    # # s.addChannel(s.NEIGHBOR_CHANNEL);
+    s.addChannel(s.COMMAND_CHANNEL);
+    s.addChannel(s.GENERAL_CHANNEL);
+    # s.addChannel(s.FLOODING_CHANNEL);
+    s.addChannel(s.NEIGHBOR_CHANNEL);
     # s.addChannel(s.ROUTING_CHANNEL);
-    # s.addChannel(s.TRANSPORT_CHANNEL);
+    s.addChannel(s.TRANSPORT_CHANNEL);
 
     #Flooding Test
     # s.runTime(1);
@@ -213,35 +213,23 @@ def main():
     # s.runTime(5);
 
     # Transport Test
-    s.addChannel(s.COMMAND_CHANNEL);
-    s.addChannel(s.GENERAL_CHANNEL);
-    #s.addChannel(s.NEIGHBOR_CHANNEL);
-    s.addChannel(s.TRANSPORT_CHANNEL);
-
-    # # After sending a ping, simulate a little to prevent collision.
-
     s.runTime(250);
-    s.setTestServer(2,20); #port 20
+    s.setTestServer(2,10); #port 20
     s.runTime(100);
-
     s.setTestClient(3, 2, 20, 21, 'ABC');
-    #s.runTime(1);
     s.runTime(500);
+    
 
     # # Chat server Test
-    # s.startChatServer();
+    # s.startChatServer(1);
     # s.runTime(100);
-    # s.hello('joe');
+    # s.hello(5, 'joe', 42);
     # s.runTime(250);
-    # s.hello('blow');
+    # s.whisper(5, 'joe', 'Hi Joe');
     # s.runTime(250);
-    # s.hello('schmo');
+    # s.msge(5, 'Hi Everyone!');
     # s.runTime(250);
-    # s.hello('joe');
-    # s.runTime(250);
-    # s.whisper('joe', 'Hi Joe');
-    # s.runTime(250);
-    # s.msg('Hi Everyone!');
+    # s.listusr(1);
     # s.runTime(250);
 
 if __name__ == '__main__':
