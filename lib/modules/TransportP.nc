@@ -1,15 +1,13 @@
 #include "../../includes/packet.h"
-
 #include "../../includes/socket.h"
-
 #include "../../includes/TCP_t.h"
+#include "../../includes/route.h"
 
 module TransportP {
   provides interface Transport;
 
   uses interface Hashmap < socket_storage_t * > as SocketPointerMap;
 
-  //uses interface Hashmap < Route > as RoutingTable;
   uses interface List <Route> as RoutingTable; //to access link state values for transport:
 
   uses interface List < socket_addr_t > as Connections;
@@ -17,6 +15,8 @@ module TransportP {
   uses interface SimpleSend as Sender;
 
   uses interface LiveSocketList;
+
+  uses interface LinkState;
 
   uses interface Window;
 
@@ -29,7 +29,6 @@ implementation {
   uint16_t seqNum = 0;
   uint8_t data[TCP_MAX_DATA_SIZE];
   uint8_t MAX_NODE_COUNT = 999;
-  Route row;
 
   socket_t assignSocketID();
 
@@ -48,8 +47,6 @@ implementation {
 
   void sendWithTimerPing(pack * Package);
 
-  //bool inTable(uint16_t dest);
-
   void makePack(pack * Package, uint16_t src, uint16_t dest, uint16_t TTL, uint16_t protocol, uint16_t seq, TCP_t * payload, uint8_t length);
 
   void makeTCPPack(TCP_t * Package, uint8_t srcPort, uint8_t destPort, uint16_t seq, uint8_t flag, uint8_t window, uint8_t * content, uint8_t length);
@@ -58,34 +55,51 @@ implementation {
   void sendWithTimerPing(pack * Package) {
     uint8_t finalDestination = Package -> dest;
     uint8_t nextDestination = finalDestination;
+    // dbg(TRANSPORT_CHANNEL, "next destination: %d\n", nextDestination);
     uint8_t preventRun = 0;
-    uint8_t size = call RoutingTable.size();
-    uint8_t i;
-    Route row1;
+    uint16_t size = call RoutingTable.size();
+    uint16_t i;
+    Route route;
 
-    //gets values from the list and only object row can access...
-    for(i = 0; i < size; i++ ){
-    Route row = call RoutingTable.get(i);
-    }
-    
-    while ((!row.next_hop == nextDestination) && preventRun < 999) {
-      nextDestination++;
+    // Linkstate list version
+    for (i = 0; i < size; i++) {
+      route = call RoutingTable.get(i);
+      dbg(TRANSPORT_CHANNEL, "--- %d\t%d\t%d\n", route.dest, route.next_hop, route.cost);
 
-      if (nextDestination >= MAX_NODE_COUNT) {
-        nextDestination = 1;
+      if ((!route.next_hop == nextDestination) && preventRun < 999) {
+        nextDestination++;
+
+        if (nextDestination >= MAX_NODE_COUNT) {
+          nextDestination = 1;
+        }
+
+        preventRun++;
       }
 
-      preventRun++;
+      if (route.cost == 1) {
+        call Sender.send(sendPackage, finalDestination);
+      } else {
+        call Sender.send(sendPackage, route.next_hop);
+      }
     }
 
-    row1 = call RoutingTable.get(nextDestination);
+    // while ((!route.next_hop == nextDestination) && preventRun < 999) {
+    //   nextDestination++;
+
+    //   if (nextDestination >= MAX_NODE_COUNT) {
+    //     nextDestination = 1;
+    //   }
+
+    //   preventRun++;
+    // }
+
+    // route = call RoutingTable.get(nextDestination);
     
-    //row.next_hop
-    if (row.cost == 1) {
-      call Sender.send(sendPackage, finalDestination);
-    } else {
-      call Sender.send(sendPackage, row.next_hop);
-    }
+    // if (route.cost == 1) {
+    //   call Sender.send(sendPackage, finalDestination);
+    // } else {
+    //   call Sender.send(sendPackage, route.next_hop);
+    // }
   }
 
   socket_t assignSocketID() {
